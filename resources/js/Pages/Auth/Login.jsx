@@ -33,14 +33,13 @@ export default function Login({ status, canResetPassword }) {
 
             <form onSubmit={submit}>
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
-
+                    <InputLabel htmlFor="email" value="Email" className='text-white' />
                     <TextInput
                         id="email"
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 block w-full text-base-300"
+                        className="mt-1 block w-full text-white bg-transparent"
                         autoComplete="username"
                         isFocused={true}
                         onChange={(e) => setData('email', e.target.value)}
@@ -49,15 +48,15 @@ export default function Login({ status, canResetPassword }) {
                     <InputError message={errors.email} className="mt-2" />
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                <div className="mt-4 ">
+                    <InputLabel htmlFor="password" value="Password" className='text-white' />
 
                     <TextInput
                         id="password"
                         type="password"
                         name="password"
                         value={data.password}
-                        className="mt-1 block w-full text-neutral"
+                        className="mt-1 block w-full text-white bg-transparent"
                         autoComplete="current-password"
                         onChange={(e) => setData('password', e.target.value)}
                     />
@@ -74,7 +73,7 @@ export default function Login({ status, canResetPassword }) {
                                 setData('remember', e.target.checked)
                             }
                         />
-                        <span className="ms-2 text-sm text-gray-600">
+                        <span className="ms-2 text-sm text-white">
                             Remember me
                         </span>
                     </label>
