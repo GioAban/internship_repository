@@ -13,11 +13,14 @@ return new class extends Migration
     {
         Schema::create('receipts', function (Blueprint $table) {
             $table->id();
+            $table->integer('receipt_number');
             $table->double('amount_received')->nullable();
-            $table->string('status')->default('pending');
+            $table->double('amount_discount')->default(0);
+            $table->string('status')->default('paid');
             $table->string('customer_name')->nullable();
             $table->string('customer_contact_number')->nullable();
             $table->string('customer_address')->nullable();
+            $table->longText('customer_note')->nullable();
             $table->timestamps();
         });
     }

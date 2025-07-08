@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\ProductController;
 use Inertia\Inertia;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Receipt;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -88,5 +89,17 @@ class DashboardController extends Controller
             ->orderByDesc('products.id')
             ->get();
         return Inertia::render('Point-of-sale', compact('categories', 'products'));
+    }
+    public function receipts()
+    {
+        $receipts = Receipt::with('invoices')->orderByDesc('id')->get();
+
+        $receipts = $receipts->map(function ($receipt) {
+            $receipt->total_amount = $receipt->invoices->sum('total_amount');
+            $receipt->total_cost_amount = $receipt->invoices->sum('total_cost_amount');
+            $receipt->total_quantity = $receipt->invoices->sum('quantity');
+            return $receipt;
+        });
+        return Inertia::render('Receipts', compact('receipts'));
     }
 }

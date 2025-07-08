@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewInvoiceController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -21,5 +24,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/products', [DashboardController::class, 'products'])->name('products');
     Route::get('/product-create', [DashboardController::class, 'productCreate'])->name('product.create');
     Route::get('/product-edit/{id}', [DashboardController::class, 'productEdit']);
+    Route::post('/review-invoice', [ReviewInvoiceController::class, 'reviewInvoice']);
+    Route::get('/review-invoice', [ReviewInvoiceController::class, 'show'])->name('review.invoice.show');
+    Route::get('/proceed-payment', [ReviewInvoiceController::class, 'proceedPayment']);
+    Route::get('/receipts', [DashboardController::class, 'receipts']);
+    Route::get('/receipt/print/{id}', [InvoiceController::class, 'print']);
 });
+
 require __DIR__ . '/auth.php';

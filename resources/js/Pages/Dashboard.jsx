@@ -24,27 +24,27 @@ export default function Dashboard() {
                             <h1>INVENTORY SYSTEM</h1>
                         </div>
                         <div className='flex'>
-                            <div className='bg-success border w-1/2'>
+                            <div className='bg-success border w-1/2 hover:bg-green-950 transition-colors duration-300'>
                                 <Link href={"/point-of-sale"} className='flex p-3'>
                                     <BiBlanket className='m-1' />
                                     <p>POS</p>
                                 </Link>
                             </div>
-                            <div className='bg-success border w-1/2'>
-                                <Link href="#" className='flex p-3'>
+                            <div className='bg-success border w-1/2 hover:bg-green-950 transition-colors duration-300'>
+                                <Link href={"/receipts"} className='flex p-3'>
                                     <BiReceipt className='m-1' />
                                     <p>RECEIPTS</p>
                                 </Link>
                             </div>
                         </div>
                         <div className='flex'>
-                            <div className='bg-success border w-1/2'>
+                            <div className='bg-success border w-1/2 hover:bg-green-950 transition-colors duration-300'>
                                 <Link href="#" className='flex p-3'>
                                     <BiSolidReport className='m-1' />
                                     <p>REPORTS</p>
                                 </Link>
                             </div>
-                            <div className='bg-success border w-1/2'>
+                            <div className='bg-success border w-1/2 hover:bg-green-950 transition-colors duration-300'>
                                 <Link href="#" className='flex p-3'>
                                     <BiMoneyWithdraw className='m-1' />
                                     <p>EXPENSES</p>
@@ -52,19 +52,20 @@ export default function Dashboard() {
                             </div>
                         </div>
                         <div className='flex'>
-                            <div className='bg-success border w-1/2'>
+                            <div className='bg-success border w-1/2 hover:bg-green-950 transition-colors duration-300'>
                                 <Link href="#" className='flex p-3'>
                                     <BiBox className='m-1' />
                                     <p>INVENTORY</p>
                                 </Link>
                             </div>
-                            <div className='bg-success border w-1/2'>
+                            <div className='bg-success border w-1/2 hover:bg-green-950 transition-colors duration-300'>
                                 <Link href={"/products"} className='flex p-3'>
                                     <BiPurchaseTagAlt className='m-1' />
                                     <h1>PRODUCTS</h1>
                                 </Link>
                             </div>
                         </div>
+
                     </div>
 
                 </div>
