@@ -7,6 +7,9 @@ import { createRoot } from "react-dom/client";
 import { Toaster } from "react-hot-toast";
 import { DataStoreProvider } from "./Context/DataStoreContext";
 
+// ⬇️ import next-themes
+import { ThemeProvider } from "next-themes";
+
 const appName = import.meta.env.VITE_APP_NAME || "Laravel";
 
 createInertiaApp({
@@ -20,12 +23,12 @@ createInertiaApp({
         const root = createRoot(el);
 
         root.render(
-            <>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
                 <DataStoreProvider>
                     <Toaster position="top-right" reverseOrder={false} />
                     <App {...props} />
                 </DataStoreProvider>
-            </>
+            </ThemeProvider>
         );
     },
     progress: {
