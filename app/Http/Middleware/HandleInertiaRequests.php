@@ -29,10 +29,21 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        // detect kung sino naka-login
+        $user = null;
+
+        if (auth('student')->check()) {
+            $user = auth('student')->user();
+        } elseif (auth('company')->check()) {
+            $user = auth('company')->user();
+        } else {
+            $user = $request->user(); // default web
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
             ],
         ];
     }

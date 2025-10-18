@@ -33,7 +33,7 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->string('parent')->nullable(); 
             $table->string('guardian')->nullable();  
-            $table->string('email');  
+            $table->string('email')->nullable(); 
             $table->longText('password');     
             $table->string('temporary_password');   
             $table->tinyInteger('is_approve')->default(0); 

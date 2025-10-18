@@ -1,40 +1,41 @@
 <?php
-
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\CoordinatorDashboardController;
 use App\Http\Controllers\Student\StudentAuthenticationController;
-use App\Http\Controllers\Company\CompanyAuthenticationController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Student\StudentDashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth;
 
 
-Route::get('/', function () {
-    if (Auth::check()) {
-        $role = (int) Auth::user()->role_as;
-        if ($role === 1) {
-            return redirect()->route('admin.dashboard');
-        } elseif ($role === 2) {
-            return redirect()->route('coordinator.dashboard');
-        }
-    }
-    return Inertia::render('Welcome');
+
+Route::middleware('redirect.if.auth')->group(function () {
+    Route::get('/', fn () => Inertia::render('Welcome'));
+    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    
 });
+
+
+Route::post('student.company.logout', [AuthenticatedSessionController::class, 'destroy'])
+        ->name('student.company.logout');
 Route::get('/become-a-partner', function () {
        return Inertia::render('BecomePartner');
 });
-Route::get('/student-login', [StudentAuthenticationController::class, 'login'])->name('student-login');
-Route::get('/company-login', [CompanyAuthenticationController::class, 'login'])->name('company-login');
+
 
 // Student needs routes middle ware (role:student)
 Route::get('/student-dashboard', [StudentAuthenticationController::class, 'dashboard'])->name('student-dashboard');
-Route::get('/student-requirements', [StudentDashboardController::class, 'studentRequirement'])->name('student-requirements');
+Route::get('/student-documents-requirements', [StudentDashboardController::class, 'studentDocumentRequirement'])->name('student-documents-requirements');
 Route::get('/student-daily-time-records', [StudentDashboardController::class, 'studentDailyTimeRecord'])->name('student-daily-time-records');
 Route::get('/student-announcements', [StudentDashboardController::class, 'announcement'])->name('student-announcements');
-Route::get('/student-profiles', [StudentDashboardController::class, 'profiles'])->name('student-profiles');
+Route::get('/student-profile', [StudentDashboardController::class, 'profile'])->name('student-profile');
 Route::get('/student-weekly-reports', [StudentDashboardController::class, 'weeklyReport'])->name('student-weekly-reports');
+Route::get('/student-company', [StudentDashboardController::class, 'viewCompany'])->name('student-company');
+
+
 
 // Admin routes (role:admin)
 Route::middleware(['auth', 'role:admin'])
@@ -65,6 +66,20 @@ Route::middleware(['auth', 'role:coordinator'])
         Route::get('/archives', [CoordinatorDashboardController::class, 'archives'])->name('archives');
         Route::get('/schoolYears', [CoordinatorDashboardController::class, 'schoolYears'])->name('schoolYears');
     });
+
+// Student routes (role:student)
+Route::middleware(['auth:student'])
+    ->prefix('student')
+    ->as('student.')
+    ->group(function () {
+        Route::get('/dashboard', [StudentAuthenticationController::class, 'dashboard'])->name('dashboard');
+        Route::get('/requirements', [StudentDashboardController::class, 'studentDocumentRequirement'])->name('requirements');
+        Route::get('/dtr', [StudentDashboardController::class, 'studentDailyTimeRecord'])->name('dtr');
+        Route::get('/announcements', [StudentDashboardController::class, 'announcement'])->name('announcements');
+        Route::get('/profiles', [StudentDashboardController::class, 'profiles'])->name('profiles');
+        Route::get('/weekly-reports', [StudentDashboardController::class, 'weeklyReport'])->name('weekly-reports');
+    });
+
 
 // Shared profile routes
 Route::middleware('auth')->group(function () {

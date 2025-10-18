@@ -34,8 +34,7 @@ return new class extends Migration
             $table->time('pm_time_out')->default('17:00:00');
             $table->tinyInteger('is_archive')->default(0);
             $table->tinyInteger('is_verified')->default(0);
-            $table->string('otp');
-            $table->longText('device_token');
+            $table->string('otp')->nullable();
             $table->timestamps();
         });
     }

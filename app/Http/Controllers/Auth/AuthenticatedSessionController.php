@@ -25,12 +25,20 @@ class AuthenticatedSessionController extends Controller
 
     public function store(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],s
+        $request->validate([
+            'login' => ['required', 'string'], // can be email or student_number
+            'password' => ['required', 'string'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        // Determine if login is email or student number
+        $loginInput = $request->input('login');
+        $isEmail = filter_var($loginInput, FILTER_VALIDATE_EMAIL);
+
+        // 1. Try Users (using email)
+        if ($isEmail && Auth::guard('web')->attempt([
+            'email' => $loginInput,
+            'password' => $request->password,
+        ], $request->boolean('remember'))) {
             $request->session()->regenerate();
 
             $role = (int) Auth::user()->role_as;
@@ -44,10 +52,31 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended(route('dashboard'));
         }
 
+        // 2. Try Students (using student_number)
+        if (!$isEmail && Auth::guard('student')->attempt([
+            'student_number' => $loginInput,
+            'password' => $request->password,
+        ], $request->boolean('remember'))) {
+            $request->session()->regenerate();
+
+            return redirect()->intended(route('student.dashboard'));
+        }
+
+        // 3. Try Companies (using email)
+        if ($isEmail && Auth::guard('company')->attempt([
+            'email' => $loginInput,
+            'password' => $request->password,
+        ], $request->boolean('remember'))) {
+            $request->session()->regenerate();
+
+            return redirect()->intended(route('company.dashboard'));
+        }
+
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
+            'login' => 'The provided credentials do not match our records.',
         ]);
     }
+
 
 
     /**
@@ -55,12 +84,14 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
+        $guard = Auth::getDefaultDriver();
+
+        Auth::guard($guard)->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');
     }
+
 }

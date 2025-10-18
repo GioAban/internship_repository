@@ -21,18 +21,29 @@ class AppServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      */
     public function boot(): void
-    {
-        Vite::prefetch(concurrency: 3);
+{
+    Vite::prefetch(concurrency: 3);
 
-        // Safe way: only share user if logged in
-        Inertia::share([
-            'auth' => fn() => [
-                'user' => Auth::check() ? [
-                    'id'   => Auth::user()->id,
-                    'name' => Auth::user()->name,
-                    'role' => Auth::user()->role_as, // column name mo dito
-                ] : null,
-            ],
-        ]);
-    }
+    Inertia::share([
+        'auth' => fn () => [
+            'user' => function () {
+                // Check all guards
+                $user = Auth::guard('web')->user()
+                     ?? Auth::guard('student')->user()
+                     ?? Auth::guard('company')->user();
+
+                if (!$user) return null;
+
+                return [
+                    'id'        => $user->id,
+                    'firstname' => $user->firstname ?? null,
+                    'lastname'  => $user->lastname ?? null,
+                    'email'     => $user->email ?? null,
+                    'role'      => $user->role_as ?? null,
+                ];
+            },
+        ],
+    ]);
+}
+
 }

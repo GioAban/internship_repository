@@ -6,3 +6,18 @@ rudolf8080
 Coordinator:
 gioaban403@gmail.com
 gio8080
+
+Company
+urdanetacity@gmail.com
+urdaneta8080
+
+Student 
+20200823
+studentgio8080
+
+Git Commit and Push 
+PS D:\Intership Management System\IntershipManagementSystem> git add .
+PS D:\Intership Management System\IntershipManagementSystem> git commit -m "Your commit message here"
+[main 74031c079] Your commit message here
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+PS D:\Intership Management System\IntershipManagementSystem> git push origin main

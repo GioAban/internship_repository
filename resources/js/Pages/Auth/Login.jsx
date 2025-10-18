@@ -8,7 +8,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
+        login: '',   // <-- dati email
         password: '',
         remember: false,
     });
@@ -34,22 +34,23 @@ export default function Login({ status, canResetPassword }) {
                 onSubmit={submit}
                 className="w-full bg-white/10 backdrop-blur-sm p-6 rounded-xl shadow-lg"
             >
-                {/* Email */}
+                {/* Login (Email or Student Number) */}
                 <div>
-                    <InputLabel htmlFor="email" value="Email" className="text-white" />
+                    <InputLabel htmlFor="login" value="Email / Student Number" className="text-white" />
                     <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
+                        id="login"
+                        type="text"
+                        name="login"
+                        value={data.login}
                         className="mt-1 block w-full rounded-md border border-white/40 bg-transparent px-3 py-2 text-white placeholder-blue-100 focus:border-blue-300 focus:ring focus:ring-blue-200"
-                        placeholder="Enter your email"
+                        placeholder="Enter your email or student number"
                         autoComplete="username"
                         isFocused={true}
-                        onChange={(e) => setData('email', e.target.value)}
+                        onChange={(e) => setData('login', e.target.value)}
                     />
-                    <InputError message={errors.email} className="mt-2 text-red-300" />
+                    <InputError message={errors.login} className="mt-2 text-red-300" />
                 </div>
+
 
                 {/* Password */}
                 <div className="mt-4">

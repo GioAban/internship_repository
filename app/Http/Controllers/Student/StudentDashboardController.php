@@ -8,21 +8,25 @@ use Inertia\Inertia;
 
 class StudentDashboardController extends Controller
 {
-    public function studentRequirement()
+    public function announcement()
     {
-        return Inertia::render('Student/Requirement');
+        return Inertia::render('Student/Announcement');
+    }
+    public function studentDocumentRequirement()
+    {
+        return Inertia::render('Student/DocumentRequirement');
     }
     public function studentDailyTimeRecord()
     {
         return Inertia::render('Student/DailyTimeRecord');
     }
-    public function announcement()
-    {
-        return Inertia::render('Student/Announcement');
-    }
     public function WeeklyReport()
     {
         return Inertia::render('Student/WeeklyReport');
+    }
+    public function viewCompany()
+    {
+        return Inertia::render('Student/Company');
     }
     public function profile()
     {

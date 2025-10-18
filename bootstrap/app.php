@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // ✅ register role middleware
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'redirect.if.auth' => \App\Http\Middleware\RedirectIfAuthenticatedCustom::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
