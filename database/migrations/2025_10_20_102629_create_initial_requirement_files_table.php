@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('colleges', function (Blueprint $table) {
+        Schema::create('initial_requirement_files', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('abbreviation', 20);
-            $table->string('dean', 45);
-            $table->string('logo')->nullable();
-            $table->boolean('is_archived')->default(false);
+            $table->foreignId('initial_requirement_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('student_id')->constrained()->cascadeOnDelete();
+            $table->string('file');
             $table->timestamps();
         });
     }
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('colleges');
+        Schema::dropIfExists('initial_requirement_files');
     }
 };

@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import {
     Card,
@@ -28,38 +28,47 @@ import {
 import { Label } from "@/components/ui/label";
 import { PlusCircle, Search, Eye, Pencil, EyeOff, FileSpreadsheet, RefreshCw } from "lucide-react";
 
-// Dummy data for students
-const initialStudents = [
-    { id: 1, studentNumber: "20200823", subjectCode: "CS101", lastname: "Valdez", firstname: "Eherson", gender: "Male", company: "Accenture", password: "Accenture" },
-    { id: 2, studentNumber: "20200824", subjectCode: "BM102", lastname: "Doe", firstname: "Jane", gender: "Female", company: "Unassigned", password: "" },
-    { id: 3, studentNumber: "20200825", subjectCode: "ENG103", lastname: "Smith", firstname: "John", gender: "Male", company: "PLDT", password: "Accenture" },
-];
-
-
-const companyOptions = ["IBM", "Accenture", "PLDT", "Globe", "Google"];
-
 
 export default function ListStudent() {
+    const { initialStudents = [] } = usePage().props;
+
+    // ✅ Move companyOptions here — inside the component, after initialStudents
+    const companyOptions = Array.from(
+        new Set(
+            initialStudents
+                .filter(s => s.company?.name)
+                .map(s => s.company.name)
+        )
+    );
+
     const [search, setSearch] = useState("");
     const [students, setStudents] = useState(initialStudents);
 
+
     // Pagination
     const [page, setPage] = useState(1);
-    const perPage = 5;
+    const perPage = 12;
     // Add these states at the top of your component
     const [filterGender, setFilterGender] = useState("");
     const [filterCompany, setFilterCompany] = useState("");
 
     // Update filteredStudents with additional filters
-    const filteredStudents = students.filter(
-        (s) =>
-            (s.studentNumber.toLowerCase().includes(search.toLowerCase()) ||
-                s.lastname.toLowerCase().includes(search.toLowerCase()) ||
-                s.firstname.toLowerCase().includes(search.toLowerCase()) ||
-                s.subjectCode.toLowerCase().includes(search.toLowerCase())) &&
-            (filterGender === "" || s.gender === filterGender) &&
-            (filterCompany === "" || s.company === filterCompany)
-    );
+    const filteredStudents = students.filter((s) => {
+        const matchesSearch =
+            s.student_number?.toLowerCase().includes(search.toLowerCase()) ||
+            s.lastname?.toLowerCase().includes(search.toLowerCase()) ||
+            s.firstname?.toLowerCase().includes(search.toLowerCase()) ||
+            s.subject_code?.toLowerCase().includes(search.toLowerCase());
+
+        const matchesGender = !filterGender || s.gender === filterGender;
+        const matchesCompany =
+            !filterCompany ||
+            s.company?.name === filterCompany ||
+            (filterCompany === "Unassigned" && !s.company);
+
+        return matchesSearch && matchesGender && matchesCompany;
+    });
+
 
     const totalPages = Math.ceil(filteredStudents.length / perPage);
     const paginatedStudents = filteredStudents.slice(
@@ -407,12 +416,12 @@ export default function ListStudent() {
                                     </div>
                                 </div>
                             </div>
-
                             {/* Table for Large Screens */}
                             <div className="overflow-x-auto hidden sm:block mt-2">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
+                                            <TableHead>No.</TableHead>
                                             <TableHead>Student Number</TableHead>
                                             <TableHead>Subject Code</TableHead>
                                             <TableHead>Lastname</TableHead>
@@ -423,14 +432,16 @@ export default function ListStudent() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {paginatedStudents.map((student) => (
+                                        {paginatedStudents.map((student, index) => (
                                             <TableRow key={student.id}>
-                                                <TableCell>{student.studentNumber}</TableCell>
-                                                <TableCell>{student.subjectCode}</TableCell>
+                                                {/* ✅ Display row number */}
+                                                <TableCell>{index + 1}</TableCell>
+                                                <TableCell>{student.student_number}</TableCell>
+                                                <TableCell>{student.subject_code}</TableCell>
                                                 <TableCell>{student.lastname}</TableCell>
                                                 <TableCell>{student.firstname}</TableCell>
                                                 <TableCell>{student.gender}</TableCell>
-                                                <TableCell>{student.company}</TableCell>
+                                                <TableCell>{student.company?.name || "Unassigned"}</TableCell>
                                                 <TableCell className="text-right flex justify-end gap-2">
                                                     <Button variant="outline" size="sm" className="bg-blue-900 text-white">
                                                         <Eye className="w-4 h-4" />
@@ -443,7 +454,7 @@ export default function ListStudent() {
                                         ))}
                                         {paginatedStudents.length === 0 && (
                                             <TableRow>
-                                                <TableCell colSpan={7} className="text-center text-gray-500">
+                                                <TableCell colSpan={8} className="text-center text-gray-500">
                                                     No students found.
                                                 </TableCell>
                                             </TableRow>
@@ -451,7 +462,6 @@ export default function ListStudent() {
                                     </TableBody>
                                 </Table>
                             </div>
-
                             {/* Mobile Cards */}
                             <div className="sm:hidden flex flex-col gap-4 mt-2">
                                 {paginatedStudents.map((student) => (
@@ -468,10 +478,11 @@ export default function ListStudent() {
                                             </div>
                                         </div>
                                         <div className="text-sm text-gray-600 dark:text-gray-300">
-                                            <p><strong>Student Number:</strong> {student.studentNumber}</p>
-                                            <p><strong>Subject Code:</strong> {student.subjectCode}</p>
+                                            <p><strong>Student Number:</strong> {student.student_number}</p>
+                                            <p><strong>Subject Code:</strong> {student.subject_code}</p>
                                             <p><strong>Gender:</strong> {student.gender}</p>
-                                            <p><strong>Company:</strong> {student.company}</p>
+                                            <p><strong>Company:</strong> {student.company?.name || "Unassigned"}</p>
+
                                         </div>
                                     </div>
                                 ))}
@@ -550,13 +561,11 @@ export default function ListStudent() {
                                     </Button>
                                 </div>
                             </div>
-
-
                             <div className="overflow-x-auto mt-4">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>#</TableHead>
+                                            <TableHead>No.</TableHead>
                                             <TableHead>Student No</TableHead>
                                             <TableHead>Name</TableHead>
                                             <TableHead>Gender</TableHead>
@@ -575,17 +584,17 @@ export default function ListStudent() {
                                             paginatedStudents.map((student, index) => (
                                                 <TableRow key={student.id}>
                                                     <TableCell>{index + 1}</TableCell>
-                                                    <TableCell>{student.studentNumber}</TableCell>
+                                                    <TableCell>{student.student_number}</TableCell>
                                                     <TableCell>{student.firstname} {student.lastname}</TableCell>
                                                     <TableCell>{student.gender}</TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center gap-2">
                                                             <span className="font-mono">
-                                                                {student.password
-                                                                    ? (visiblePasswords[student.id] ? student.password : "••••••")
+                                                                {student.temporary_password
+                                                                    ? (visiblePasswords[student.id] ? student.temporary_password : "••••••")
                                                                     : "🔒"}
                                                             </span>
-                                                            {student.password && (
+                                                            {student.temporary_password && (
                                                                 <Button
                                                                     variant="outline"
                                                                     size="sm"

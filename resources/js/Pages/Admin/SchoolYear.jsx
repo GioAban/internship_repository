@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import {
     Card,
@@ -26,14 +26,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { PlusCircle, Search, Eye, Pencil } from "lucide-react";
 
-// Dummy data
-const initialSchoolYears = [
-    { id: 1, school_year: "2023-2024", status: "Active" },
-    { id: 2, school_year: "2022-2023", status: "Inactive" },
-    { id: 3, school_year: "2021-2022", status: "Inactive" },
-];
-
 export default function SchoolYear() {
+    const { initialSchoolYears = [] } = usePage().props;
     const [search, setSearch] = useState("");
     const [schoolYears, setSchoolYears] = useState(initialSchoolYears);
 
@@ -213,10 +207,12 @@ export default function SchoolYear() {
                                         <TableCell>{sy.school_year}</TableCell>
                                         <TableCell>
                                             <select
-                                                value={sy.status}
+                                                value={sy.is_default === 1 ? "Active" : "Inactive"}
                                                 onChange={(e) => {
                                                     const updated = schoolYears.map((item) =>
-                                                        item.id === sy.id ? { ...item, status: e.target.value } : item
+                                                        item.id === sy.id
+                                                            ? { ...item, is_default: e.target.value === "Active" ? 1 : 0, status: e.target.value }
+                                                            : item
                                                     );
                                                     setSchoolYears(updated);
                                                 }}
@@ -225,8 +221,8 @@ export default function SchoolYear() {
                                                 <option value="Active">Active</option>
                                                 <option value="Inactive">Inactive</option>
                                             </select>
-
                                         </TableCell>
+
                                         <TableCell className="text-right flex justify-end gap-2">
                                             <Button variant="outline" size="sm" className="bg-blue-900 text-white">
                                                 <Eye className="w-4 h-4" />

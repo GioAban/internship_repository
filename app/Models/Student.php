@@ -33,12 +33,20 @@ class Student extends Authenticatable
         'email',
         'password',
         'temporary_password',
-        'is_approve',
-        'is_archive',
+        'is_archived',
         'is_verified',
         'device_token',
         'otp',
     ];
+    public function program() {
+          return $this->belongsTo(Program::class);
+    }
+    public function company() {
+          return $this->belongsTo(Company::class);
+    }
+    public function schoolYear() {
+          return $this->belongsTo(SchoolYear::class);
+    }
 
     // Para sa password hashing
     protected $hidden = [

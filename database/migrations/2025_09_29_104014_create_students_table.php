@@ -35,7 +35,7 @@ return new class extends Migration
             $table->string('guardian')->nullable();  
             $table->string('email')->nullable(); 
             $table->longText('password');     
-            $table->string('temporary_password');   
+            $table->string('temporary_password')->nullable();     
             $table->tinyInteger('is_approve')->default(0); 
             $table->tinyInteger('is_archive')->default(0); 
             $table->tinyInteger('is_verified')->default(0);  

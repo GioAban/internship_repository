@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, usePage } from '@inertiajs/react';
+import { useState, useMemo } from 'react';
 import {
     Card,
     CardContent,
@@ -9,14 +9,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import {
     Dialog,
     DialogContent,
@@ -27,56 +19,65 @@ import {
 import { Label } from "@/components/ui/label";
 import { PlusCircle, Search, Eye, Pencil } from "lucide-react";
 
-// Dummy data
-const initialPrograms = [
-    { id: 1, name: "Bachelor of Science in Computer Science", acronym: "BSCS", duration: "560 hrs", head: "Eherson Valdez" },
-    { id: 2, name: "Bachelor of Science in Business Management", acronym: "BSBM", duration: "480 hrs", head: "Jane Doe" },
-    { id: 3, name: "Bachelor of Science in Engineering", acronym: "BSE", duration: "600 hrs", head: "John Smith" },
-];
-
 export default function Program() {
+    const { initialPrograms = [] } = usePage().props;
     const [search, setSearch] = useState("");
     const [programs, setPrograms] = useState(initialPrograms);
-
-    // Pagination
-    const [page, setPage] = useState(1);
-    const perPage = 5;
-    const filteredPrograms = programs.filter(
-        (p) =>
-            p.name.toLowerCase().includes(search.toLowerCase()) ||
-            p.acronym.toLowerCase().includes(search.toLowerCase())
-    );
-    const totalPages = Math.ceil(filteredPrograms.length / perPage);
-    const paginatedPrograms = filteredPrograms.slice(
-        (page - 1) * perPage,
-        page * perPage
-    );
-
-    // Modal State
     const [open, setOpen] = useState(false);
-    const [form, setForm] = useState({ name: "", acronym: "", duration: "", head: "" });
+    const [form, setForm] = useState({ name: "", abbreviation: "", training_duration: "", program_head: "" });
     const [errors, setErrors] = useState({});
+    const [page, setPage] = useState(1);
+    const perPage = 10;
 
-    // Handle Add Program
-    const handleAddProgram = () => {
-        let newErrors = {};
+
+    // Filter programs
+    const filteredPrograms = useMemo(() => {
+        const term = search.toLowerCase();
+        return programs.filter(p => {
+            const name = p.name?.toLowerCase() || "";
+            const abbreviation = p.abbreviation?.toLowerCase() || "";
+            const duration = p.training_duration?.toLowerCase() || "";
+            const head = p.program_head?.toLowerCase() || "";
+
+            return (
+                name.includes(term) ||
+                abbreviation.includes(term) ||
+                duration.includes(term) ||
+                head.includes(term)
+            );
+        });
+    }, [search, programs]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredPrograms.length / perPage));
+    const paginatedPrograms = filteredPrograms.slice((page - 1) * perPage, page * perPage);
+
+    // Input handler
+    const handleChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
+
+    // Validation
+    const validateForm = () => {
+        const newErrors = {};
         if (!form.name.trim()) newErrors.name = "Program name is required.";
-        if (!form.acronym.trim()) newErrors.acronym = "Acronym is required.";
-        if (!form.duration.trim()) newErrors.duration = "Training duration is required.";
-        if (!form.head.trim()) newErrors.head = "Program head is required.";
+        if (!form.abbreviation.trim()) newErrors.abbreviation = "Abbreviation is required.";
+        if (!form.training_duration.trim()) newErrors.training_duration = "Training duration is required.";
+        if (!form.program_head.trim()) newErrors.program_head = "Program head is required.";
+        return newErrors;
+    };
 
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
+    // Add program
+    const handleAddProgram = () => {
+        const validationErrors = validateForm();
+        if (Object.keys(validationErrors).length) {
+            setErrors(validationErrors);
             return;
         }
 
-        setPrograms([
-            ...programs,
+        setPrograms(prev => [
+            ...prev,
             { id: Date.now(), ...form }
         ]);
 
-        // reset
-        setForm({ name: "", acronym: "", duration: "", head: "" });
+        setForm({ name: "", abbreviation: "", training_duration: "", program_head: "" });
         setErrors({});
         setOpen(false);
     };
@@ -85,73 +86,61 @@ export default function Program() {
         <AuthenticatedLayout
             header={
                 <h2 className="font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                    Program
+                    Program List
                 </h2>
             }
         >
-            <Head title="Program" />
-            <Card className="bg-neutral border-0">
-                <CardHeader className="flex flex-row items-center justify-between">
+            <Head title="Programs" />
+
+            <Card className="bg-neutral border-0 shadow-sm">
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <CardTitle className="text-lg font-semibold">Programs</CardTitle>
+
                     {/* Add Program Modal */}
                     <Dialog open={open} onOpenChange={setOpen}>
-                        <DialogContent className="max-w-lg w-full">
+                        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-xl">
                             <DialogHeader>
                                 <DialogTitle>Add New Program</DialogTitle>
                             </DialogHeader>
+
                             <div className="grid gap-4 py-2">
-                                <div>
-                                    <Label>Program Name</Label>
-                                    <Input
-                                        value={form.name}
-                                        onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    />
-                                    {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-                                </div>
-                                <div>
-                                    <Label>Acronym</Label>
-                                    <Input
-                                        value={form.acronym}
-                                        onChange={(e) => setForm({ ...form, acronym: e.target.value })}
-                                    />
-                                    {errors.acronym && <p className="text-red-500 text-sm">{errors.acronym}</p>}
-                                </div>
-                                <div>
-                                    <Label>Training Duration</Label>
-                                    <Input
-                                        value={form.duration}
-                                        onChange={(e) => setForm({ ...form, duration: e.target.value })}
-                                    />
-                                    {errors.duration && <p className="text-red-500 text-sm">{errors.duration}</p>}
-                                </div>
-                                <div>
-                                    <Label>Program Head</Label>
-                                    <Input
-                                        value={form.head}
-                                        onChange={(e) => setForm({ ...form, head: e.target.value })}
-                                    />
-                                    {errors.head && <p className="text-red-500 text-sm">{errors.head}</p>}
-                                </div>
+                                {[
+                                    { field: "name", label: "Program Name" },
+                                    { field: "abbreviation", label: "Abbreviation" },
+                                    { field: "training_duration", label: "Training Duration" },
+                                    { field: "program_head", label: "Program Head" },
+                                ].map(({ field, label }) => (
+                                    <div key={field}>
+                                        <Label>{label}</Label>
+                                        <Input
+                                            placeholder={`Enter ${label.toLowerCase()} `}
+                                            value={form[field]}
+                                            onChange={(e) => handleChange(field, e.target.value)}
+                                        />
+                                        {errors[field] && (
+                                            <p className="text-red-500 text-sm">{errors[field]}</p>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
 
                             <DialogFooter>
                                 <Button
                                     onClick={handleAddProgram}
-                                    className="bg-blue-900 text-white hover:bg-blue-800 hover:text-gray-200 w-full sm:w-auto"
+                                    className="bg-blue-900 text-white w-full hover:bg-blue-800"
                                 >
-                                    Add
+                                    Save
                                 </Button>
                             </DialogFooter>
-
                         </DialogContent>
                     </Dialog>
                 </CardHeader>
 
                 <CardContent>
-                    {/* Search Bar + Button */}
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mb-4">
-                        {/* Search */}
-                        <div className="flex items-center gap-2 flex-1">
-                            <Search className="w-6 h-4 text-blue-900" />
+                    {/* Search and Add Button */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
+                        <div className="flex items-center gap-2 w-full">
+                            <Search className="w-5 h-5 text-blue-900 hidden sm:block" />
                             <Input
                                 placeholder="Search programs..."
                                 value={search}
@@ -159,11 +148,10 @@ export default function Program() {
                                     setPage(1);
                                     setSearch(e.target.value);
                                 }}
-                                className="flex-1 border-blue-900"
+                                className="border-blue-900 flex-1"
                             />
                         </div>
 
-                        {/* Add Button */}
                         <Button
                             onClick={() => setOpen(true)}
                             className="bg-blue-900 hover:bg-blue-700 text-white flex items-center justify-center sm:w-auto w-full"
@@ -173,64 +161,100 @@ export default function Program() {
                         </Button>
                     </div>
 
-                    {/* Table */}
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Acronym</TableHead>
-                                    <TableHead>Training Duration</TableHead>
-                                    <TableHead>Program Head</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {paginatedPrograms.map((program) => (
-                                    <TableRow key={program.id}>
-                                        <TableCell>{program.name}</TableCell>
-                                        <TableCell>{program.acronym}</TableCell>
-                                        <TableCell>{program.duration}</TableCell>
-                                        <TableCell>{program.head}</TableCell>
-                                        <TableCell className="text-right flex justify-end gap-2">
-                                            <Button variant="outline" size="sm" className="bg-blue-900 text-white">
-                                                <Eye className="w-4 h-4" />
-                                            </Button>
-                                            <Button variant="outline" size="sm">
-                                                <Pencil className="w-4 h-4" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {paginatedPrograms.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="text-center text-gray-500">
+                    {/* Desktop Table */}
+                    <div className="hidden sm:block overflow-x-auto">
+                        <table className="min-w-full border rounded-md">
+                            <thead className="bg-gray-100 dark:bg-gray-800 dark:text-gray-200">
+                                <tr>
+                                    <th className="px-2 py-2 text-left">No.</th>
+                                    <th className="px-2 py-2 text-left">Name</th>
+                                    <th className="px-2 py-2 text-left">Abbreviation</th>
+                                    <th className="px-2 py-2 text-left">Training Duration</th>
+                                    <th className="px-2 py-2 text-left">Program Head</th>
+                                    <th className="px-2 py-2 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {paginatedPrograms.length > 0 ? (
+                                    paginatedPrograms.map((program, index) => (
+                                        <tr key={program.id} className="border-t">
+                                            <td className="px-3 py-2">{(page - 1) * perPage + index + 1}</td>
+                                            <td className="px-3 py-2">{program.name}</td>
+                                            <td className="px-3 py-2">{program.abbreviation}</td>
+                                            <td className="px-3 py-2">{program.training_duration}</td>
+                                            <td className="px-3 py-2">{program.program_head}</td>
+                                            <td className="px-3 py-2 text-right flex justify-end gap-2">
+                                                <Button size="sm" className="bg-blue-900 text-white">
+                                                    <Eye className="w-4 h-4" />
+                                                </Button>
+                                                <Button size="sm" variant="outline">
+                                                    <Pencil className="w-4 h-4" />
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="6" className="text-center text-gray-500 py-4">
                                             No programs found.
-                                        </TableCell>
-                                    </TableRow>
+                                        </td>
+                                    </tr>
                                 )}
-                            </TableBody>
-                        </Table>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Mobile Card View */}
+                    <div className="sm:hidden grid gap-3">
+                        {paginatedPrograms.length > 0 ? (
+                            paginatedPrograms.map((program, index) => (
+                                <div
+                                    key={program.id}
+                                    className="border border-gray-200 rounded-lg p-3 shadow-sm bg-white"
+                                >
+                                    <p className="font-semibold text-sm">{program.name}</p>
+                                    <p className="text-xs text-gray-500">{program.abbreviation}</p>
+                                    <p className="text-xs text-gray-700 mt-1">
+                                        <strong>Duration:</strong> {program.training_duration}
+                                    </p>
+                                    <p className="text-xs text-gray-700">
+                                        <strong>Head:</strong> {program.program_head}
+                                    </p>
+                                    <div className="flex justify-end gap-2 mt-2">
+                                        <Button size="sm" className="bg-blue-900 text-white p-1">
+                                            <Eye className="w-4 h-4" />
+                                        </Button>
+                                        <Button size="sm" variant="outline" className="p-1">
+                                            <Pencil className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-center text-gray-500 text-sm">No programs found.</p>
+                        )}
                     </div>
 
                     {/* Pagination */}
-                    <div className="flex flex-col sm:flex-row justify-end items-center mt-4 gap-2">
+                    <div className="flex flex-col sm:flex-row justify-center sm:justify-end items-center mt-4 gap-2 text-sm">
                         <Button
                             variant="outline"
                             size="sm"
                             disabled={page === 1}
-                            onClick={() => setPage(page - 1)}
+                            onClick={() => setPage(p => p - 1)}
+                            className="w-full sm:w-auto"
                         >
                             Previous
                         </Button>
-                        <span className="px-2 py-1 text-sm">
+                        <span className="text-center w-full sm:w-auto">
                             Page {page} of {totalPages}
                         </span>
                         <Button
                             variant="outline"
                             size="sm"
                             disabled={page === totalPages}
-                            onClick={() => setPage(page + 1)}
+                            onClick={() => setPage(p => p + 1)}
+                            className="w-full sm:w-auto"
                         >
                             Next
                         </Button>
@@ -239,4 +263,6 @@ export default function Program() {
             </Card>
         </AuthenticatedLayout>
     );
+
+
 }

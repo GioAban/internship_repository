@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('school_year');
             $table->tinyInteger('is_default')->default(0); 
-            $table->tinyInteger('is_archive')->default(0); 
+            $table->tinyInteger('is_archived')->default(0); 
             $table->timestamps();
         });
     }

@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, usePage } from '@inertiajs/react';
+import { useState, useMemo } from 'react';
 import {
     Card,
     CardContent,
@@ -27,29 +27,29 @@ import {
 import { Label } from "@/components/ui/label";
 import { PlusCircle, Search, Eye, Pencil } from "lucide-react";
 
-// Dummy data
-const initialUsers = [
-    { id: 1, photo: "/photos/ccs.png", name: "Benjie Magalong", employee_number: "JOT09928", program: "BSIT", added_at: "2025-01-17", email: "benjie@example.com" },
-    { id: 2, photo: "/photos/cbm.png", name: "Rodante Marcoleta", employee_number: "JOT09927", program: "BSBA", added_at: "2025-01-16", email: "rodante@example.com" },
-    { id: 3, photo: "/photos/coe.png", name: "Kiko Pangilinan", employee_number: "JOT09926", program: "BSCpE", added_at: "2025-01-15", email: "kiko@example.com" },
-    { id: 4, photo: "/photos/cas.png", name: "Bam Aquino", employee_number: "JOT09925", program: "BS Math", added_at: "2025-01-14", email: "bam@example.com" },
-    { id: 5, photo: "/photos/chtm.png", name: "Imee Marcos", employee_number: "JOT09924", program: "BSTM", added_at: "2025-01-13", email: "imee@example.com" },
-    { id: 6, photo: "/photos/cte.png", name: "Joel Villanueva", employee_number: "JOT09923", program: "BSEd", added_at: "2025-01-12", email: "joel@example.com" },
-];
-
 export default function User() {
+    const { initialUsers = [] } = usePage().props;
     const [search, setSearch] = useState("");
     const [users, setUsers] = useState(initialUsers);
 
     // Pagination
     const [page, setPage] = useState(1);
     const perPage = 5;
-    const filteredUsers = users.filter(
-        (u) =>
-            u.name.toLowerCase().includes(search.toLowerCase()) ||
-            u.employee_number.toLowerCase().includes(search.toLowerCase()) ||
-            u.program.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredUsers = users.filter((u) => {
+        const name = u.name?.toLowerCase() || "";
+        const employeeNumber = u.employee_number?.toLowerCase() || "";
+        const programName = u.program?.name?.toLowerCase() || ""; // <-- use u.program.name
+        const email = u.email?.toLowerCase() || "";
+
+        return (
+            name.includes(search.toLowerCase()) ||
+            employeeNumber.includes(search.toLowerCase()) ||
+            programName.includes(search.toLowerCase()) ||
+            email.includes(search.toLowerCase())
+        );
+    });
+
+
     const totalPages = Math.ceil(filteredUsers.length / perPage);
     const paginatedUsers = filteredUsers.slice(
         (page - 1) * perPage,
@@ -98,7 +98,6 @@ export default function User() {
             <Head title="User" />
             <Card className="bg-neutral border-0">
                 <CardHeader className="flex flex-row items-center justify-between">
-                    {/* Add User Modal */}
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogContent className="max-w-lg w-full">
                             <DialogHeader>
@@ -138,15 +137,13 @@ export default function User() {
                                     />
                                     {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
                                 </div>
-
-                                {/* Program Type Select */}
                                 <div className="flex flex-col gap-2 w-full">
                                     <Label htmlFor="program">Program</Label>
                                     <select
                                         id="program"
                                         value={form.program}
                                         onChange={(e) => setForm({ ...form, program: e.target.value })}
-                                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200"
+                                        className="w-full border border-gray-300 dark:border-gray-600 p-2 focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200"
                                     >
                                         <option value="">-- Select Program --</option>
                                         <option value="BSCS">Bachelor of Science in Computer Science</option>
@@ -176,10 +173,10 @@ export default function User() {
                 </CardHeader>
 
                 <CardContent>
-                    {/* Search Bar + Button */}
+                    {/* Search and Add Button */}
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mb-4">
                         <div className="flex items-center gap-2 flex-1">
-                            <Search className="w-6 h-4 text-blue-900" />
+                            <Search className="w-5 h-5 text-blue-900 dark:text-gray-300" />
                             <Input
                                 placeholder="Search users..."
                                 value={search}
@@ -187,7 +184,7 @@ export default function User() {
                                     setPage(1);
                                     setSearch(e.target.value);
                                 }}
-                                className="flex-1 border-blue-900"
+                                className="flex-1 border-blue-900 dark:border-gray-500 dark:bg-gray-800 dark:text-gray-200"
                             />
                         </div>
 
@@ -200,54 +197,95 @@ export default function User() {
                         </Button>
                     </div>
 
-                    {/* Table */}
-                    <div className="overflow-x-auto">
+                    {/* Table (Desktop) */}
+                    <div className="hidden md:block overflow-x-auto border border-gray-200 dark:border-gray-700">
                         <Table>
                             <TableHeader>
-                                <TableRow>
+                                <TableRow className="bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                                     <TableHead>Photo</TableHead>
                                     <TableHead>Name</TableHead>
-                                    <TableHead>Employee Number</TableHead>
-                                    <TableHead>Email</TableHead>
+                                    <TableHead>Employee No.</TableHead>
                                     <TableHead>Program</TableHead>
                                     <TableHead>Added At</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {paginatedUsers.map((u) => (
-                                    <TableRow key={u.id}>
-                                        <TableCell>
-                                            <img
-                                                src={u.photo}
-                                                alt={u.employee_number}
-                                                className="w-10 h-10 rounded-md object-contain"
-                                            />
-                                        </TableCell>
-                                        <TableCell>{u.name}</TableCell>
-                                        <TableCell>{u.employee_number}</TableCell>
-                                        <TableCell>{u.email}</TableCell>
-                                        <TableCell>{u.program}</TableCell>
-                                        <TableCell>{u.added_at}</TableCell>
-                                        <TableCell className="text-right flex justify-end gap-2">
-                                            <Button variant="outline" size="sm" className="bg-blue-900 text-white">
-                                                <Eye className="w-4 h-4" />
-                                            </Button>
-                                            <Button variant="outline" size="sm">
-                                                <Pencil className="w-4 h-4" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {paginatedUsers.length === 0 && (
+                                {paginatedUsers.length > 0 ? (
+                                    paginatedUsers.map((u) => (
+                                        <TableRow key={u.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                            <TableCell>
+                                                <img
+                                                    src={u.photo ? `/${u.photo}` : '/uploads/colleges/ucu_logo.png'}
+                                                    alt={u.employee_number}
+                                                    className="w-10 h-10 rounded-md object-contain"
+                                                />
+                                            </TableCell>
+                                            <TableCell>{u.name}</TableCell>
+                                            <TableCell>{u.employee_number}</TableCell>
+                                            <TableCell>{u.program?.name || "-"}</TableCell>
+
+                                            <TableCell>{new Date(u.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</TableCell>
+                                            <TableCell className="text-right flex justify-end gap-2">
+                                                <Button size="sm" className="bg-blue-900 text-white">
+                                                    <Eye className="w-4 h-4" />
+                                                </Button>
+                                                <Button size="sm" variant="outline">
+                                                    <Pencil className="w-4 h-4" />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center text-gray-500">
+                                        <TableCell colSpan={7} className="text-center text-gray-500 dark:text-gray-400 py-4">
                                             No users found.
                                         </TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
                         </Table>
+                    </div>
+
+                    {/* Mobile Card View */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:hidden">
+                        {paginatedUsers.length > 0 ? (
+                            paginatedUsers.map((u) => (
+                                <Card
+                                    key={u.id}
+                                    className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                                >
+                                    <CardContent className="p-4">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <img
+                                                src={u.photo ? `/${u.photo}` : '/uploads/colleges/ucu_logo.png'}
+                                                alt={u.photo}
+                                                className="w-12 h-12 rounded-md object-cover"
+                                            />
+                                            <div>
+                                                <p className="font-semibold">{u.name}</p>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400">{u.employee_number}</p>
+                                            </div>
+                                        </div>
+                                        <p><span className="font-semibold">Email:</span> {u.email}</p>
+                                        <p><span className="font-semibold">Program:</span> {u.program?.name || "-"}</p>
+
+                                        <p><span className="font-semibold">Added:</span> {u.added_at}</p>
+
+                                        <div className="flex justify-end gap-2 mt-3">
+                                            <Button size="sm" className="bg-blue-900 text-white">
+                                                <Eye className="w-4 h-4" />
+                                            </Button>
+                                            <Button size="sm" variant="outline">
+                                                <Pencil className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))
+                        ) : (
+                            <p className="text-center text-gray-500 dark:text-gray-400 col-span-full">No users found.</p>
+                        )}
                     </div>
 
                     {/* Pagination */}

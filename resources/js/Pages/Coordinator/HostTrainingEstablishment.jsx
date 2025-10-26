@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import {
     Card,
@@ -27,15 +27,10 @@ import {
 import { Label } from "@/components/ui/label";
 import { PlusCircle, Search, Eye, Pencil, RefreshCw } from "lucide-react";
 
-// Dummy data for companies
-const initialCompanies = [
-    { id: 1, name: "Accenture", owner: "Eherson Valdez", supervisor: "Supervisor 1", contact: "09123456789", nature: "Industry", email: "acc@company.com" },
-    { id: 2, name: "IBM", owner: "Jane Doe", supervisor: "Supervisor 2", contact: "09987654321", nature: "Business", email: "ibm@company.com" },
-    { id: 3, name: "PLDT", owner: "John Smith", supervisor: "Supervisor 3", contact: "09111222333", nature: "Industry", email: "pldt@company.com" },
-];
 const companyNatures = ["Government", "Industry", "Business", "Other"];
 
 export default function HostTrainingEstablishment() {
+    const { initialCompanies = [] } = usePage().props;
     const [search, setSearch] = useState("");
     const [companies, setCompanies] = useState(initialCompanies);
     const [page, setPage] = useState(1);

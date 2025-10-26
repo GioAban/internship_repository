@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('abbreviation', 20);
             $table->string('training_duration', 10);
-            $table->string('head', 45);
-            $table->boolean('is_archive')->default(false);
+            $table->string('program_head', 45);
+            $table->boolean('is_archived')->default(false);
             $table->timestamps();
         });
     }

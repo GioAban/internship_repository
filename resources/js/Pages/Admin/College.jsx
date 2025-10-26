@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, usePage } from '@inertiajs/react';
+import { useState, useMemo } from 'react';
 import {
     Card,
     CardContent,
@@ -10,77 +10,66 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogFooter,
-    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { PlusCircle, Search, Eye, Pencil } from "lucide-react";
 
-// Dummy data
-const initialColleges = [
-    { id: 1, logo: "/logos/ccs.png", name: "College of Computer Studies", acronym: "CCS" },
-    { id: 2, logo: "/logos/cbm.png", name: "College of Business Management", acronym: "CBM" },
-    { id: 3, logo: "/logos/coe.png", name: "College of Engineering", acronym: "COE" },
-    { id: 4, logo: "/logos/cas.png", name: "College of Arts & Sciences", acronym: "CAS" },
-    { id: 5, logo: "/logos/chtm.png", name: "College of Hospitality & Tourism", acronym: "CHTM" },
-    { id: 6, logo: "/logos/cte.png", name: "College of Teacher Education", acronym: "CTE" },
-];
-
 export default function College() {
+    const { initialColleges = [] } = usePage().props;
     const [search, setSearch] = useState("");
     const [colleges, setColleges] = useState(initialColleges);
-
-    // Pagination
-    const [page, setPage] = useState(1);
-    const perPage = 5;
-    const filteredColleges = colleges.filter(
-        (c) =>
-            c.name.toLowerCase().includes(search.toLowerCase()) ||
-            c.acronym.toLowerCase().includes(search.toLowerCase())
-    );
-    const totalPages = Math.ceil(filteredColleges.length / perPage);
-    const paginatedColleges = filteredColleges.slice(
-        (page - 1) * perPage,
-        page * perPage
-    );
-
-    // Modal State
     const [open, setOpen] = useState(false);
-    const [form, setForm] = useState({ logo: "", name: "", acronym: "", dean: "" });
+    const [form, setForm] = useState({ logo: "", name: "", abbreviation: "", dean: "" });
     const [errors, setErrors] = useState({});
+    const [page, setPage] = useState(1);
+    const perPage = 10;
 
-    // Handle Add College
-    const handleAddCollege = () => {
-        let newErrors = {};
-        if (!form.name.trim()) newErrors.name = "College name is required.";
-        if (!form.acronym.trim()) newErrors.acronym = "Acronym is required.";
-        if (!form.dean.trim()) newErrors.dean = "Dean is required.";
+    // Filter
+    const filteredColleges = useMemo(() => {
+        const term = search.toLowerCase();
+        return colleges.filter(c => {
+            const logo = c.logo?.toLowerCase() || "";
+            const name = c.name?.toLowerCase() || "";
+            const abbreviation = c.abbreviation?.toLowerCase() || "";
+            const dean = c.dean?.toLowerCase() || "";
+            const programs = "bachelor of science in information technology";
+            return (
+                logo.includes(term) ||
+                name.includes(term) ||
+                abbreviation.includes(term) ||
+                dean.includes(term) ||
+                programs.includes(term)
+            );
+        });
+    }, [search, colleges]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredColleges.length / perPage));
+    const paginatedColleges = filteredColleges.slice((page - 1) * perPage, page * perPage);
+
+    const handleChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
+
+    const validateForm = () => {
+        const newErrors = {};
         if (!form.logo.trim()) newErrors.logo = "Logo URL is required.";
+        if (!form.name.trim()) newErrors.name = "College name is required.";
+        if (!form.abbreviation.trim()) newErrors.abbreviation = "Abbreviation is required.";
+        if (!form.dean.trim()) newErrors.dean = "Dean is required.";
+        return newErrors;
+    };
 
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
+    const handleAddCollege = () => {
+        const validationErrors = validateForm();
+        if (Object.keys(validationErrors).length) {
+            setErrors(validationErrors);
             return;
         }
-
-        setColleges([
-            ...colleges,
-            { id: Date.now(), logo: form.logo, name: form.name, acronym: form.acronym }
-        ]);
-
-        // reset
-        setForm({ logo: "", name: "", acronym: "" });
+        setColleges(prev => [...prev, { id: Date.now(), ...form }]);
+        setForm({ logo: "", name: "", abbreviation: "", dean: "" });
         setErrors({});
         setOpen(false);
     };
@@ -94,51 +83,39 @@ export default function College() {
             }
         >
             <Head title="Colleges" />
-            <Card className="bg-neutral border-0">
-                <CardHeader className="flex flex-row items-center justify-between">
+
+            <Card className="bg-neutral border-0 shadow-sm">
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <CardTitle className="text-lg font-semibold">Colleges</CardTitle>
+
                     {/* Add College Modal */}
                     <Dialog open={open} onOpenChange={setOpen}>
-                        <DialogContent className="max-w-lg w-full">
+                        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-xl">
                             <DialogHeader>
                                 <DialogTitle>Add New College</DialogTitle>
                             </DialogHeader>
+
                             <div className="grid gap-4 py-2">
-                                <div>
-                                    <Label>College Logo (URL)</Label>
-                                    <Input
-                                        value={form.logo}
-                                        onChange={(e) => setForm({ ...form, logo: e.target.value })}
-                                    />
-                                    {errors.logo && <p className="text-red-500 text-sm">{errors.logo}</p>}
-                                </div>
-                                <div>
-                                    <Label>College Name</Label>
-                                    <Input
-                                        value={form.name}
-                                        onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    />
-                                    {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-                                </div>
-                                <div>
-                                    <Label>Acronym</Label>
-                                    <Input
-                                        value={form.acronym}
-                                        onChange={(e) => setForm({ ...form, acronym: e.target.value })}
-                                    />
-                                    {errors.acronym && <p className="text-red-500 text-sm">{errors.acronym}</p>}
-                                </div>
-                                <div>
-                                    <Label>Dean</Label>
-                                    <Input
-                                        value={form.acronym}
-                                        onChange={(e) => setForm({ ...form, dean: e.target.value })}
-                                    />
-                                    {errors.acronym && <p className="text-red-500 text-sm">{errors.dean}</p>}
-                                </div>
+                                {["logo", "name", "abbreviation", "dean"].map((field) => (
+                                    <div key={field}>
+                                        <Label className="capitalize">{field}</Label>
+                                        <Input
+                                            placeholder={`Enter ${field}`}
+                                            value={form[field]}
+                                            onChange={(e) => handleChange(field, e.target.value)}
+                                        />
+                                        {errors[field] && (
+                                            <p className="text-red-500 text-sm">{errors[field]}</p>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
 
                             <DialogFooter>
-                                <Button onClick={handleAddCollege} className="bg-blue-900 text-white w-full sm:w-auto dark:hover:bg-black-200">
+                                <Button
+                                    onClick={handleAddCollege}
+                                    className="bg-blue-900 text-white w-full hover:bg-blue-800"
+                                >
                                     Save
                                 </Button>
                             </DialogFooter>
@@ -147,11 +124,10 @@ export default function College() {
                 </CardHeader>
 
                 <CardContent>
-                    {/* Search Bar + Button */}
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mb-4">
-                        {/* Search */}
-                        <div className="flex items-center gap-2 flex-1">
-                            <Search className="w-6 h-4 text-blue-900" />
+                    {/* Search and Add Button */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
+                        <div className="flex items-center gap-2 w-full">
+                            <Search className="w-5 h-5 text-blue-900 hidden sm:block" />
                             <Input
                                 placeholder="Search colleges..."
                                 value={search}
@@ -159,11 +135,10 @@ export default function College() {
                                     setPage(1);
                                     setSearch(e.target.value);
                                 }}
-                                className="flex-1 border-blue-900"
+                                className="border-blue-900 flex-1"
                             />
                         </div>
 
-                        {/* Add Button */}
                         <Button
                             onClick={() => setOpen(true)}
                             className="bg-blue-900 hover:bg-blue-700 text-white flex items-center justify-center sm:w-auto w-full"
@@ -173,72 +148,132 @@ export default function College() {
                         </Button>
                     </div>
 
-                    {/* Table (scrollable on small screens) */}
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Logo</TableHead>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Acronym</TableHead>
-                                    <TableHead>Programs</TableHead>
-                                    <TableHead>Dean</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {paginatedColleges.map((college) => (
-                                    <TableRow key={college.id}>
-                                        <TableCell>
-                                            <img
-                                                src={college.logo}
-                                                alt={college.acronym}
-                                                className="w-10 h-10 rounded-md object-contain"
-                                            />
-                                        </TableCell>
-                                        <TableCell>{college.name}</TableCell>
-                                        <TableCell>{college.acronym}</TableCell>
-                                        <TableCell>Bachelor of Science in Information Technology</TableCell>
-                                        <TableCell>Johans Rabago</TableCell>
-                                        <TableCell className="text-right flex justify-end gap-2">
-                                            <Button variant="outline" size="sm" className="bg-blue-900 text-white">
-                                                <Eye className="w-4 h-4" />
-                                            </Button>
-                                            <Button variant="outline" size="sm">
-                                                <Pencil className="w-4 h-4" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {paginatedColleges.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="text-center text-gray-500">
+                    {/* Desktop Table */}
+                    <div className="hidden sm:block overflow-x-auto">
+                        <table className="min-w-full border rounded-md">
+                            <thead className="bg-gray-100 dark:bg-gray-800 dark:text-gray-200">
+                                <tr>
+                                    <th className="px-3 py-2 text-left">No.</th>
+                                    <th className="px-3 py-2 text-left">Logo</th>
+                                    <th className="px-3 py-2 text-left">Name</th>
+                                    <th className="px-3 py-2 text-left">Abbreviation</th>
+                                    <th className="px-3 py-2 text-left">Programs</th>
+
+                                    <th className="px-3 py-2 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {paginatedColleges.length > 0 ? (
+                                    paginatedColleges.map((college, index) => (
+                                        <tr key={college.id} className="border-t">
+                                            <td className="px-3 py-2">{(page - 1) * perPage + index + 1}</td>
+                                            <td className="px-3 py-2">
+                                                <img
+                                                    src={college.logo ? `/${college.logo}` : '/uploads/college/ucu_logo.png'}
+                                                    alt={college.abbreviation}
+                                                    className="w-10 h-10 rounded-md object-contain"
+                                                />
+                                            </td>
+                                            <td className="px-3 py-2">{college.name}</td>
+                                            <td className="px-3 py-2">{college.abbreviation}</td>
+
+                                            {/* ✅ Show all programs under this college */}
+                                            <td className="px-3 py-2 text-sm">
+                                                {college.programs && college.programs.length > 0 ? (
+                                                    <ul className="list-disc list-inside">
+                                                        {college.programs.map((program) => (
+                                                            <li key={program.id}>{program.name}</li>
+                                                        ))}
+                                                    </ul>
+                                                ) : (
+                                                    <span className="text-gray-500 italic">No programs</span>
+                                                )}
+                                            </td>
+
+
+
+                                            <td className="px-3 py-2 text-right flex justify-end gap-2">
+                                                <Button size="sm" className="bg-blue-900 text-white">
+                                                    <Eye className="w-4 h-4" />
+                                                </Button>
+                                                <Button size="sm" variant="outline">
+                                                    <Pencil className="w-4 h-4" />
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="7" className="text-center text-gray-500 py-4">
                                             No colleges found.
-                                        </TableCell>
-                                    </TableRow>
+                                        </td>
+                                    </tr>
                                 )}
-                            </TableBody>
-                        </Table>
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                    {/* Mobile View (Card style) */}
+                    <div className="sm:hidden grid gap-3">
+                        {paginatedColleges.length > 0 ? (
+                            paginatedColleges.map((college, index) => (
+                                <div
+                                    key={college.id}
+                                    className="border border-gray-200 rounded-lg p-3 shadow-sm bg-white"
+                                >
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <img
+                                            src={college.logo ? `/${college.logo}` : '/uploads/colleges/ucu_logo.png'}
+                                            alt={college.abbreviation}
+                                            className="w-12 h-12 rounded-md object-contain"
+                                        />
+                                        <div>
+                                            <p className="font-semibold text-sm">{college.name}</p>
+                                            <p className="text-xs text-gray-500">{college.abbreviation}</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-gray-700">
+                                        <strong>Program:</strong> Bachelor of Science in Information Technology
+                                    </p>
+                                    <p className="text-xs text-gray-700">
+                                        <strong>Dean:</strong> {college.dean}
+                                    </p>
+                                    <div className="flex justify-end gap-2 mt-2">
+                                        <Button size="sm" className="bg-blue-900 text-white p-1">
+                                            <Eye className="w-4 h-4" />
+                                        </Button>
+                                        <Button size="sm" variant="outline" className="p-1">
+                                            <Pencil className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-center text-gray-500 text-sm">No colleges found.</p>
+                        )}
                     </div>
 
                     {/* Pagination */}
-                    <div className="flex flex-col sm:flex-row justify-end items-center mt-4 gap-2">
+                    <div className="flex flex-col sm:flex-row justify-center sm:justify-end items-center mt-4 gap-2 text-sm">
                         <Button
                             variant="outline"
                             size="sm"
                             disabled={page === 1}
-                            onClick={() => setPage(page - 1)}
+                            onClick={() => setPage(p => p - 1)}
+                            className="w-full sm:w-auto"
                         >
                             Previous
                         </Button>
-                        <span className="px-2 py-1 text-sm">
+                        <span className="text-center w-full sm:w-auto">
                             Page {page} of {totalPages}
                         </span>
                         <Button
                             variant="outline"
                             size="sm"
                             disabled={page === totalPages}
-                            onClick={() => setPage(page + 1)}
+                            onClick={() => setPage(p => p + 1)}
+                            className="w-full sm:w-auto"
                         >
                             Next
                         </Button>

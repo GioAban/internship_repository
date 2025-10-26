@@ -4,8 +4,7 @@ import NavLink from "@/Components/NavLink";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
 import { Link, usePage } from "@inertiajs/react";
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Home, Building, Book, User, Calendar, Settings, GraduationCap, Megaphone, ClipboardMinus, Archive, Moon, Sun } from "lucide-react";
+import { Home, Building, Book, User, Calendar, Settings, GraduationCap, Megaphone, Tags, ClipboardMinus, Archive, Moon, Sun, ChartColumnDecreasing } from "lucide-react";
 
 export default function AuthenticatedLayout({ header, children }) {
     const { auth } = usePage().props;
@@ -74,6 +73,16 @@ export default function AuthenticatedLayout({ header, children }) {
                         </NavLink>
                     )}
                     {user?.role_as == 1 && (
+                        <NavLink href={route("admin.analytics")} active={route().current("admin.analytics")} className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-blue-800 dark:hover:bg-gray-700 text-sm hover:text-white">
+                            <ChartColumnDecreasing className="mr-2 h-4 w-4" /> Analytics
+                        </NavLink>
+                    )}
+                    {user?.role_as == 1 && (
+                        <NavLink href={route("admin.school-years")} active={route().current("admin.school-years")} className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-blue-800 dark:hover:bg-gray-700 text-sm hover:text-white">
+                            <Calendar className="mr-2 h-4 w-4" /> Semester Management
+                        </NavLink>
+                    )}
+                    {user?.role_as == 1 && (
                         <NavLink href={route("admin.colleges")} active={route().current("admin.colleges")} className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-blue-800 dark:hover:bg-gray-700 text-sm hover:text-white">
                             <Building className="mr-2 h-4 w-4" /> Colleges
                         </NavLink>
@@ -108,6 +117,11 @@ export default function AuthenticatedLayout({ header, children }) {
                     {user?.role_as == 2 && (
                         <NavLink href={route("coordinator.dashboard")} active={route().current("dashboard")} className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-blue-800 dark:hover:bg-gray-700 text-sm hover:text-white">
                             <Home className="mr-2 h-4 w-4" /> Dashboard
+                        </NavLink>
+                    )}
+                    {user?.role_as == 2 && (
+                        <NavLink href={route("coordinator.tracking")} active={route().current("coordinator.tracking")} className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-blue-800 dark:hover:bg-gray-700 text-sm hover:text-white">
+                            <Tags className="mr-2 h-4 w-4" /> Tracking
                         </NavLink>
                     )}
                     {user?.role_as == 2 && (

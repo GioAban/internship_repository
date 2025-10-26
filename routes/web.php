@@ -43,12 +43,13 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/analytics', [AdminDashboardController::class, 'analytic'])->name('analytics');
         Route::get('/colleges', [AdminDashboardController::class, 'colleges'])->name('colleges');
         Route::get('/programs', [AdminDashboardController::class, 'programs'])->name('programs');
         Route::get('/users', [AdminDashboardController::class, 'users'])->name('users');
         Route::get('/reports', [AdminDashboardController::class, 'reports'])->name('reports');
         Route::get('/archives', [AdminDashboardController::class, 'archives'])->name('archives');
-        Route::get('/school_years', [AdminDashboardController::class, 'schoolYears'])->name('school_years');
+        Route::get('/school-years', [AdminDashboardController::class, 'schoolYear'])->name('school-years');
     });
 
 // Coordinator routes (role:coordinator)
@@ -60,6 +61,7 @@ Route::middleware(['auth', 'role:coordinator'])
         Route::get('/listStudents', [CoordinatorDashboardController::class, 'listStudents'])->name('listStudents');
         Route::get('/hostTrainingEstablishments', [CoordinatorDashboardController::class, 'hostTrainingEstablishments'])->name('hostTrainingEstablishments');
         Route::get('/evaluations', [CoordinatorDashboardController::class, 'evaluations'])->name('evaluations');
+        Route::get('/tracking', [CoordinatorDashboardController::class, 'tracking'])->name('tracking');
         Route::get('/announcements', [CoordinatorDashboardController::class, 'announcements'])->name('announcements');
         Route::get('/documentRequirements', [CoordinatorDashboardController::class, 'documentRequirements'])->name('documentRequirements');
         Route::get('/reports', [CoordinatorDashboardController::class, 'reports'])->name('reports');

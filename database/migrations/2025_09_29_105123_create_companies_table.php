@@ -32,7 +32,7 @@ return new class extends Migration
             $table->time('am_time_out')->default('12:00:00');
             $table->time('pm_time_in')->default('13:00:00'); 
             $table->time('pm_time_out')->default('17:00:00');
-            $table->tinyInteger('is_archive')->default(0);
+            $table->tinyInteger('is_archived')->default(0);
             $table->tinyInteger('is_verified')->default(0);
             $table->string('otp')->nullable();
             $table->timestamps();

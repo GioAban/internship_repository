@@ -97,7 +97,7 @@ const exportAsPDF = async (ref, filename) => {
 };
 
 
-export default function Dashboard() {
+export default function Analytic() {
     const statusChartRef = useRef(null); // ✅ moved inside component
     const internshipStatusChartRef = useRef(null);
     const genderChartRef = useRef(null);
@@ -107,87 +107,12 @@ export default function Dashboard() {
             header={
                 <h2 className="font-semibold leading-tight text-gray-800 dark:text-gray-200 
         text-base sm:text-lg md:text-xl lg:text-2xl">
-                    Dashboard
+                    Analytics
                 </h2>
             }
         >
 
-            <Head title="Dashboard" />
-
-            {/* Stats Cards */}
-            <div className="mx-auto px-2">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                    {/* Coordinators */}
-                    <Card className="bg-gradient-to-r from-blue-600 to-blue-900 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-semibold">COORDINATORS</CardTitle>
-                            <div className="p-2 bg-white/20 rounded-full">
-                                <Users className="h-5 w-5" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold">12</div>
-                            <p className="text-xs opacity-80">View details</p>
-                        </CardContent>
-                    </Card>
-
-                    {/* HTE */}
-                    <Card className="bg-gradient-to-r from-blue-600 to-blue-900 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-semibold">HTE</CardTitle>
-                            <div className="p-2 bg-white/20 rounded-full">
-                                <GraduationCap className="h-5 w-5" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold">8</div>
-                            <p className="text-xs opacity-80">View details</p>
-                        </CardContent>
-                    </Card>
-
-                    {/* Interns */}
-                    <Card className="bg-gradient-to-r from-blue-600 to-blue-900 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-semibold">INTERNS</CardTitle>
-                            <div className="p-2 bg-white/20 rounded-full">
-                                <UserCheck className="h-5 w-5" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold">245</div>
-                            <p className="text-xs opacity-80">View details</p>
-                        </CardContent>
-                    </Card>
-
-                    {/* For Approval */}
-                    <Card className="bg-gradient-to-r from-blue-600 to-blue-900 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-semibold">FOR APPROVAL</CardTitle>
-                            <div className="p-2 bg-white/20 rounded-full">
-                                <Briefcase className="h-5 w-5" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold">180</div>
-                            <p className="text-xs opacity-80">View details</p>
-                        </CardContent>
-                    </Card>
-
-                    {/* Deployed */}
-                    <Card className="bg-gradient-to-r from-blue-600 to-blue-900 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-semibold">DEPLOYED</CardTitle>
-                            <div className="p-2 bg-white/20 rounded-full">
-                                <Briefcase className="h-5 w-5" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold">80</div>
-                            <p className="text-xs opacity-80">View details</p>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
+            <Head title="Analytics" />
             {/* Modern Horizontal Bar Chart */}
             <div
                 className="mt-6 bg-white dark:bg-gray-900 rounded-lg shadow-lg sm:p-6"

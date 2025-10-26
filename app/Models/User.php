@@ -45,4 +45,7 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function program() {
+          return $this->belongsTo(Program::class);
+    }
 }

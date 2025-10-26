@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import {
     Card,
@@ -22,12 +22,9 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 // Dummy data
-const initialAnnouncements = [
-    { id: 1, title: "School Holiday", message: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.", date: "2025-09-21", files: [] },
-    { id: 2, title: "Exam Schedule", message: "Midterm exams start next week.", date: "2025-09-22", files: [] },
-];
 
 export default function Announcement() {
+    const { initialAnnouncements = [] } = usePage().props;
     const [announcements, setAnnouncements] = useState(initialAnnouncements);
     const [openModal, setOpenModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -114,7 +111,7 @@ export default function Announcement() {
                                 className="mt-2 text-gray-700 dark:text-gray-300"
                                 dangerouslySetInnerHTML={{ __html: announcement.message }}
                             />
-                            {announcement.files.length > 0 && (
+                            {announcement.files && announcement.files.length > 0 && (
                                 <div className="mt-3 flex flex-wrap gap-2">
                                     {announcement.files.map((file, i) => (
                                         <a
@@ -128,6 +125,7 @@ export default function Announcement() {
                                     ))}
                                 </div>
                             )}
+
                             <div className="mt-3 flex gap-2 justify-end">
                                 <Button variant="outline" size="sm" onClick={() => handleEdit(announcement)}>
                                     <Pencil className="w-4 h-4" />

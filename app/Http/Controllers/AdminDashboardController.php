@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use App\Models\College;
+use App\Models\Program;
+use App\Models\User;
+use App\Models\SchoolYear;
 use Carbon\Carbon;
 
 class AdminDashboardController extends Controller
@@ -13,28 +17,45 @@ class AdminDashboardController extends Controller
     {
         return Inertia::render('Admin/Dashboard');
     }
+    public function analytic()
+    {
+        return Inertia::render('Admin/Analytic');
+    }
     public function colleges()
     {
-        return Inertia::render('Admin/College');
+        $initialColleges = College::with('programs')->where('id', '!=', 1)->orderByDesc('id')->get();
+        return Inertia::render('Admin/College', compact('initialColleges'));
     }
     public function programs()
     {
-        return Inertia::render('Admin/Program');
+        $initialPrograms = Program::orderByDesc('id')->get();
+        return Inertia::render('Admin/Program', compact('initialPrograms'));
     }
     public function users()
     {
-        return Inertia::render('Admin/User');
+        $initialUsers = User::with('program')->where('role_as', '!=', 1)->orderByDesc('id')->get();
+        return Inertia::render('Admin/User', compact('initialUsers'));
     }
-    public function schoolYears()
+    public function schoolYear()
     {
-        return Inertia::render('Admin/SchoolYear');
+        $initialSchoolYears = SchoolYear::where('is_archived', '!=', 1)->orderByDesc('id')->get();
+        return Inertia::render('Admin/SchoolYear', compact('initialSchoolYears'));
     }
     public function reports()
     {
         return Inertia::render('Admin/Report');
     }
-    public function archives()
-    {
-        return Inertia::render('Admin/Archive');
+   public function archives() {
+        $initialColleges = College::where('is_archived', 1)->where('id', '!=', 1)->orderByDesc('id')->get();
+        $initialPrograms = Program::where('is_archived', 1)->orderByDesc('id')->get();
+        $initialUsers = User::with('program')->where('is_archived', 1)->with('program')->where('role_as', '!=', 1)->orderByDesc('id')->get();
+        $initialSchoolYears = SchoolYear::where('is_archived', 1)->orderByDesc('id')->get();
+        return Inertia::render('Admin/Archive', [
+            'initialColleges' => $initialColleges,
+            'initialPrograms' => $initialPrograms,
+            'initialUsers' => $initialUsers,
+            'initialSchoolYears' => $initialSchoolYears,
+        ]);
     }
+
 }
