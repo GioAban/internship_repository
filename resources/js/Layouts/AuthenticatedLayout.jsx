@@ -160,11 +160,6 @@ export default function AuthenticatedLayout({ header, children }) {
                             <Archive className="mr-2 h-4 w-4" /> Archives
                         </NavLink>
                     )}
-                    {user?.role_as == 2 && (
-                        <NavLink href={route("coordinator.schoolYears")} active={route().current("coordinator.schoolYears")} className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-blue-800 dark:hover:bg-gray-700 text-sm hover:text-white">
-                            <Calendar className="mr-2 h-4 w-4" /> School Years
-                        </NavLink>
-                    )}
                     <NavLink href={route("profile.edit")} active={route().current("profile.edit")} className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-blue-800 dark:hover:bg-gray-700 text-sm hover:text-white">
                         <Settings className="mr-2 h-4 w-4" /> Profile
                     </NavLink>

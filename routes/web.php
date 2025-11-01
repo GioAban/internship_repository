@@ -66,7 +66,6 @@ Route::middleware(['auth', 'role:coordinator'])
         Route::get('/documentRequirements', [CoordinatorDashboardController::class, 'documentRequirements'])->name('documentRequirements');
         Route::get('/reports', [CoordinatorDashboardController::class, 'reports'])->name('reports');
         Route::get('/archives', [CoordinatorDashboardController::class, 'archives'])->name('archives');
-        Route::get('/schoolYears', [CoordinatorDashboardController::class, 'schoolYears'])->name('schoolYears');
     });
 
 // Student routes (role:student)

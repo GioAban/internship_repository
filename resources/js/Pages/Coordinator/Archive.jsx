@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import {
     Card,
@@ -19,34 +19,17 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Eye, Pencil, RefreshCw } from "lucide-react";
 
 export default function Archive() {
+    const {
+        initialCompanies = [],
+        initialStudents = [],
+        initialRequirements = [],
+        initialPreRequirements = [],
+        initialPostRequirements = []
+    } = usePage().props;
+
     const [search, setSearch] = useState("");
     const [filter, setFilter] = useState("all");
     const [activeTab, setActiveTab] = useState("companies");
-
-    // Dummy data
-    const companies = [
-        { id: 1, name: "Accenture", owner: "Eherson Valdez", nature: "IT Services" },
-        { id: 2, name: "IBM", owner: "Jane Doe", nature: "Consulting" },
-    ];
-
-    const students = [
-        { id: 1, studentNo: "20200823", name: "Eherson Valdez", gender: "Male", status: "Active" },
-        { id: 2, studentNo: "20200824", name: "Jane Doe", gender: "Female", status: "Inactive" },
-    ];
-
-    const initialDocs = [
-        { id: 1, name: "Resume" },
-        { id: 2, name: "OJT Form" },
-    ];
-
-    const preDocs = [
-        { id: 1, name: "Pre-Deployment Checklist" },
-    ];
-
-    const postDocs = [
-        { id: 1, name: "Final Report" },
-        { id: 2, name: "Evaluation Form" },
-    ];
 
     // Filter function
     const filterData = (data) =>
@@ -64,9 +47,14 @@ export default function Archive() {
     const renderTableRows = (data, columns) =>
         data.map(item => (
             <TableRow key={item.id}>
-                {columns.map(col => (
-                    <TableCell key={col.key}>{item[col.key]}</TableCell>
-                ))}
+                {columns.map(col => {
+                    let value = item[col.key];
+                    // Compute full name
+                    if (col.key === "fullName") {
+                        value = `${item.firstname} ${item.lastname}`;
+                    }
+                    return <TableCell key={col.key}>{value}</TableCell>;
+                })}
                 <TableCell className="text-right flex justify-end gap-2">
                     <Button variant="outline" size="sm" className="bg-blue-900 text-white">
                         <Eye className="w-4 h-4" />
@@ -83,7 +71,10 @@ export default function Archive() {
         data.map(item => (
             <div key={item.id} className="border rounded-md p-3 bg-white dark:bg-gray-800 shadow-sm">
                 <div className="flex justify-between items-center mb-2">
-                    <span className="font-semibold">{item.name || item.studentNo}</span>
+                    {/* Display full name or fallback */}
+                    <span className="font-semibold">
+                        {item.firstname && item.lastname ? `${item.firstname} ${item.lastname}` : item.studentNo || item.name}
+                    </span>
                     <div className="flex gap-2">
                         <Button variant="outline" size="sm" className="bg-blue-900 text-white">
                             <Eye className="w-4 h-4" />
@@ -94,9 +85,13 @@ export default function Archive() {
                     </div>
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
-                    {columns.map(col => (
-                        <p key={col.key}><strong>{col.label}:</strong> {item[col.key]}</p>
-                    ))}
+                    {columns.map(col => {
+                        let value = item[col.key];
+                        if (col.key === "fullName") {
+                            value = `${item.firstname} ${item.lastname}`;
+                        }
+                        return <p key={col.key}><strong>{col.label}:</strong> {value}</p>;
+                    })}
                 </div>
             </div>
         ));
@@ -139,16 +134,14 @@ export default function Archive() {
                                     >
                                         <option value="all">All</option>
                                         {activeTab === "companies" && (
-                                            <>
-                                                <option value="IT Services">IT Services</option>
-                                                <option value="Consulting">Consulting</option>
-                                            </>
+                                            [...new Set(initialCompanies.map(c => c.nature))].map(nature => (
+                                                <option key={nature} value={nature}>{nature}</option>
+                                            ))
                                         )}
                                         {activeTab === "students" && (
-                                            <>
-                                                <option value="Active">Active</option>
-                                                <option value="Inactive">Inactive</option>
-                                            </>
+                                            [...new Set(initialStudents.map(s => s.status))].map(status => (
+                                                <option key={status} value={status}>{status}</option>
+                                            ))
                                         )}
                                     </select>
                                 )}
@@ -172,7 +165,7 @@ export default function Archive() {
                                     </TableHeader>
                                     <TableBody>
                                         {renderTableRows(
-                                            filterData(companies).filter(c => filter === "all" || c.nature === filter),
+                                            filterData(initialCompanies).filter(c => filter === "all" || c.nature === filter),
                                             [
                                                 { key: "name", label: "Company Name" },
                                                 { key: "owner", label: "Owner" },
@@ -184,7 +177,7 @@ export default function Archive() {
                             </div>
                             <div className="sm:hidden flex flex-col gap-4">
                                 {renderMobileCards(
-                                    filterData(companies).filter(c => filter === "all" || c.nature === filter),
+                                    filterData(initialCompanies).filter(c => filter === "all" || c.nature === filter),
                                     [
                                         { key: "name", label: "Company Name" },
                                         { key: "owner", label: "Owner" },
@@ -209,10 +202,10 @@ export default function Archive() {
                                     </TableHeader>
                                     <TableBody>
                                         {renderTableRows(
-                                            filterData(students).filter(s => filter === "all" || s.status === filter),
+                                            filterData(initialStudents).filter(s => filter === "all" || s.status === filter),
                                             [
-                                                { key: "studentNo", label: "Student No" },
-                                                { key: "name", label: "Name" },
+                                                { key: "student_number", label: "Student No" },
+                                                { key: "fullName", label: "Name" },
                                                 { key: "gender", label: "Gender" },
                                                 { key: "status", label: "Status" },
                                             ]
@@ -222,10 +215,10 @@ export default function Archive() {
                             </div>
                             <div className="sm:hidden flex flex-col gap-4">
                                 {renderMobileCards(
-                                    filterData(students).filter(s => filter === "all" || s.status === filter),
+                                    filterData(initialStudents).filter(s => filter === "all" || s.status === filter),
                                     [
-                                        { key: "studentNo", label: "Student No" },
-                                        { key: "name", label: "Name" },
+                                        { key: "student_number", label: "Student No" },
+                                        { key: "fullName", label: "Name" },
                                         { key: "gender", label: "Gender" },
                                         { key: "status", label: "Status" },
                                     ]
@@ -244,12 +237,12 @@ export default function Archive() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {renderTableRows(initialDocs, [{ key: "name", label: "Document Name" }])}
+                                        {renderTableRows(initialRequirements, [{ key: "title", label: "Document Name" }])}
                                     </TableBody>
                                 </Table>
                             </div>
                             <div className="sm:hidden flex flex-col gap-4">
-                                {renderMobileCards(initialDocs, [{ key: "name", label: "Document Name" }])}
+                                {renderMobileCards(initialRequirements, [{ key: "title", label: "Document Name" }])}
                             </div>
                         </TabsContent>
 
@@ -264,12 +257,12 @@ export default function Archive() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {renderTableRows(preDocs, [{ key: "name", label: "Document Name" }])}
+                                        {renderTableRows(initialPreRequirements, [{ key: "title", label: "Document Name" }])}
                                     </TableBody>
                                 </Table>
                             </div>
                             <div className="sm:hidden flex flex-col gap-4">
-                                {renderMobileCards(preDocs, [{ key: "name", label: "Document Name" }])}
+                                {renderMobileCards(initialPreRequirements, [{ key: "title", label: "Document Name" }])}
                             </div>
                         </TabsContent>
 
@@ -284,12 +277,12 @@ export default function Archive() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {renderTableRows(postDocs, [{ key: "name", label: "Document Name" }])}
+                                        {renderTableRows(initialPostRequirements, [{ key: "title", label: "Document Name" }])}
                                     </TableBody>
                                 </Table>
                             </div>
                             <div className="sm:hidden flex flex-col gap-4">
-                                {renderMobileCards(postDocs, [{ key: "name", label: "Document Name" }])}
+                                {renderMobileCards(initialPostRequirements, [{ key: "title", label: "Document Name" }])}
                             </div>
                         </TabsContent>
                     </Tabs>

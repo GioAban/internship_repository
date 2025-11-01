@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Announcement;
 use App\Models\Company;
+use App\Models\FinalEvaluation;
 use App\Models\InitialRequirement;
+use App\Models\MidtermEvaluation;
 use App\Models\PostRequirement;
 use App\Models\PreRequirement;
 use Inertia\Inertia;
@@ -28,27 +30,6 @@ class CoordinatorDashboardController extends Controller
             'school_year' => session('school_year'),
             'school_year_id' => session('school_year_id'),
         ]);
-    }
-    public function listStudents()
-    {
-        $initialStudents = Student::with(['program', 'company', 'schoolYear'])
-            ->where('program_id', Auth::user()->program_id) 
-            ->where('is_archived', 0)
-            ->orderByDesc('id')
-            ->get();
-        return Inertia::render('Coordinator/ListStudent', compact('initialStudents'));
-    }
-    public function hostTrainingEstablishments()
-    {
-        $initialCompanies = Company::where('program_id', Auth::user()->program_id) 
-            ->where('is_archived', 0)
-            ->orderByDesc('id')
-            ->get();
-        return Inertia::render('Coordinator/HostTrainingEstablishment', compact('initialCompanies'));
-    }
-    public function evaluations()
-    {
-        return Inertia::render('Coordinator/Evaluation');
     }
     public function tracking()
     {
@@ -78,13 +59,69 @@ class CoordinatorDashboardController extends Controller
             ->get();
         return Inertia::render('Coordinator/DocumentRequirement', compact('initialRequirements', 'preRequirements', 'postRequirements'));
     }
+    public function listStudents()
+    {
+        $initialStudents = Student::with(['program', 'company', 'schoolYear'])
+            ->where('program_id', Auth::user()->program_id) 
+            ->where('is_archived', 0)
+            ->orderByDesc('id')
+            ->get();
+        return Inertia::render('Coordinator/ListStudent', compact('initialStudents'));
+    }
+    public function hostTrainingEstablishments()
+    {
+        $initialCompanies = Company::where('program_id', Auth::user()->program_id) 
+            ->where('is_archived', 0)
+            ->orderByDesc('id')
+            ->get();
+        return Inertia::render('Coordinator/HostTrainingEstablishment', compact('initialCompanies'));
+    }
+    public function evaluations()
+    {
+        $initialMidtermEvaluations = MidtermEvaluation::join('students', 'students.id', '=', 'midterm_evaluations.student_id')
+        ->join('companies', 'companies.id', '=', 'students.company_id')
+        ->where('students.school_year_id', Session::get('school_year_id'))
+        ->where('students.program_id', Auth::user()->program_id)
+        ->select(
+            'midterm_evaluations.*',
+            'students.student_number',
+            'students.firstname',
+            'students.lastname',
+            'students.gender',
+            'students.subject_code',
+            'companies.name as company'
+        )
+        ->orderByDesc('midterm_evaluations.id')
+        ->get();
+    $initialFinalEvaluations = FinalEvaluation::join('students', 'students.id', '=', 'final_evaluations.student_id')
+        ->join('companies', 'companies.id', '=', 'students.company_id')
+        ->where('students.school_year_id', Session::get('school_year_id'))
+        ->where('students.program_id', Auth::user()->program_id)
+        ->select(
+            'final_evaluations.*',
+            'students.student_number',
+            'students.firstname',
+            'students.lastname',
+            'students.gender',
+            'students.subject_code',
+            'companies.name as company'
+        )
+        ->orderByDesc('final_evaluations.id')
+        ->get();
+        return Inertia::render('Coordinator/Evaluation', compact('initialMidtermEvaluations', 'initialFinalEvaluations'));
+    }
     public function reports()
     {
         return Inertia::render('Coordinator/Report');
     }
     public function archives()
     {
-        return Inertia::render('Coordinator/Archive');
+        $initialCompanies = Company::where('is_archived', 1)->orderByDesc('id')->get();
+        $initialStudents = Student::where('is_archived', 1)->orderByDesc('id')->get();
+        $initialRequirements = InitialRequirement::where('is_archived', 1)->orderByDesc('id')->get();
+        $initialPreRequirements = PreRequirement::where('is_archived', 1)->orderByDesc('id')->get();
+        $initialPostRequirements = PostRequirement::where('is_archived', 1)->orderByDesc('id')->get();
+        return Inertia::render('Coordinator/Archive', compact('initialCompanies', 'initialStudents', 'initialRequirements', 'initialPreRequirements', 'initialPostRequirements'));
     }
     public function schoolYears()
     {

@@ -34,7 +34,7 @@ export default function HostTrainingEstablishment() {
     const [search, setSearch] = useState("");
     const [companies, setCompanies] = useState(initialCompanies);
     const [page, setPage] = useState(1);
-    const perPage = 5;
+    const perPage = 12;
     const [filterNature, setFilterNature] = useState("");
 
     const filteredCompanies = companies.filter(

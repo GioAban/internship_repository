@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import {
     Card,
@@ -18,18 +18,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Eye, Pencil } from "lucide-react";
 
 // Dummy data
-const midtermStudents = [
-    { id: 1, studentNumber: "20200823", subjectCode: "CS101", lastname: "Valdez", firstname: "Eherson", gender: "Male", company: "Accenture" },
-    { id: 2, studentNumber: "20200824", subjectCode: "BM102", lastname: "Doe", firstname: "Jane", gender: "Female", company: "IBM" },
-    { id: 3, studentNumber: "20200825", subjectCode: "ENG103", lastname: "Smith", firstname: "John", gender: "Male", company: "PLDT" },
-];
 
-const finalStudents = [
-    { id: 4, studentNumber: "20200826", subjectCode: "CS102", lastname: "Reyes", firstname: "Mark", gender: "Male", company: "Accenture" },
-    { id: 5, studentNumber: "20200827", subjectCode: "BM103", lastname: "Lopez", firstname: "Maria", gender: "Female", company: "Google" },
-];
 
 export default function Evaluation() {
+    const { initialMidtermEvaluations = [], initialFinalEvaluations = [] } = usePage().props;
     const [searchMid, setSearchMid] = useState("");
     const [searchFinal, setSearchFinal] = useState("");
     const [filterGenderMid, setFilterGenderMid] = useState("");
@@ -41,36 +33,38 @@ export default function Evaluation() {
     const perPage = 5;
 
     // Filter & paginate midterm
-    const filteredMidterm = midtermStudents.filter(
+    const filteredMidterm = initialMidtermEvaluations.filter(
         s =>
-            (s.studentNumber.toLowerCase().includes(searchMid.toLowerCase()) ||
-                s.lastname.toLowerCase().includes(searchMid.toLowerCase()) ||
-                s.firstname.toLowerCase().includes(searchMid.toLowerCase()) ||
-                s.subjectCode.toLowerCase().includes(searchMid.toLowerCase())) &&
+            ((s.studentNumber?.toString().toLowerCase() || "").includes(searchMid.toLowerCase()) ||
+                (s.lastname?.toLowerCase() || "").includes(searchMid.toLowerCase()) ||
+                (s.firstname?.toLowerCase() || "").includes(searchMid.toLowerCase()) ||
+                (s.subjectCode?.toLowerCase() || "").includes(searchMid.toLowerCase())) &&
             (filterGenderMid === "" || s.gender === filterGenderMid) &&
             (filterCompanyMid === "" || s.company === filterCompanyMid)
     );
+
     const totalPagesMid = Math.max(1, Math.ceil(filteredMidterm.length / perPage));
     const paginatedMidterm = filteredMidterm.slice((pageMid - 1) * perPage, pageMid * perPage);
 
     // Filter & paginate final
-    const filteredFinal = finalStudents.filter(
+    const filteredFinal = initialFinalEvaluations.filter(
         s =>
-            (s.studentNumber.toLowerCase().includes(searchFinal.toLowerCase()) ||
-                s.lastname.toLowerCase().includes(searchFinal.toLowerCase()) ||
-                s.firstname.toLowerCase().includes(searchFinal.toLowerCase()) ||
-                s.subjectCode.toLowerCase().includes(searchFinal.toLowerCase())) &&
+            ((s.studentNumber?.toLowerCase() || "").includes(searchFinal.toLowerCase()) ||
+                (s.lastname?.toLowerCase() || "").includes(searchFinal.toLowerCase()) ||
+                (s.firstname?.toLowerCase() || "").includes(searchFinal.toLowerCase()) ||
+                (s.subjectCode?.toLowerCase() || "").includes(searchFinal.toLowerCase())) &&
             (filterGenderFinal === "" || s.gender === filterGenderFinal) &&
             (filterCompanyFinal === "" || s.company === filterCompanyFinal)
     );
+
     const totalPagesFinal = Math.max(1, Math.ceil(filteredFinal.length / perPage));
     const paginatedFinal = filteredFinal.slice((pageFinal - 1) * perPage, pageFinal * perPage);
 
     const renderTableRows = (students) =>
         students.map(student => (
             <TableRow key={student.id}>
-                <TableCell>{student.studentNumber}</TableCell>
-                <TableCell>{student.subjectCode}</TableCell>
+                <TableCell>{student.student_number}</TableCell>
+                <TableCell>{student.subject_code}</TableCell>
                 <TableCell>{student.lastname}</TableCell>
                 <TableCell>{student.firstname}</TableCell>
                 <TableCell>{student.gender}</TableCell>
@@ -101,8 +95,8 @@ export default function Evaluation() {
                     </div>
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-300">
-                    <p><strong>Student Number:</strong> {student.studentNumber}</p>
-                    <p><strong>Subject Code:</strong> {student.subjectCode}</p>
+                    <p><strong>Student Number:</strong> {student.student_number}</p>
+                    <p><strong>Subject Code:</strong> {student.subject_code}</p>
                     <p><strong>Gender:</strong> {student.gender}</p>
                     <p><strong>Company:</strong> {student.company}</p>
                 </div>

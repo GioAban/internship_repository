@@ -2,41 +2,25 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import {
-    Card,
-    CardContent,
-    CardHeader,
+    Card, CardContent, CardHeader
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+    Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
+    Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { PlusCircle, Pencil, Search } from "lucide-react";
+import { PlusCircle, Pencil, Search, RefreshCw, Filter } from "lucide-react";
 
 export default function DocumentRequirement() {
-    const { initialRequirements = [] } = usePage().props;
-    const { preRequirements = [] } = usePage().props;
-    const { postRequirements = [] } = usePage().props;
+    const { initialRequirements = [], preRequirements = [], postRequirements = [] } = usePage().props;
+
 
     const [activeTab, setActiveTab] = useState("initial");
-    const [preliminaryRequirements, setPreliminaryRequirements] = useState([
-        { category: "Medical Certificate", status: true },
-        { category: "Barangay Clearance", status: false },
-    ]);
 
     // Modal States
     const [isInitialModalOpen, setIsInitialModalOpen] = useState(false);
@@ -44,201 +28,312 @@ export default function DocumentRequirement() {
     const [isPostModalOpen, setIsPostModalOpen] = useState(false);
 
     // Form States
-    const [initialRequirementForm, setInitialRequirementForm] = useState({ title: "", status: false });
-    const [preliminaryRequirementForm, setPreliminaryRequirementForm] = useState({ category: "", status: false });
-    const [postRequirementForm, setPostRequirementForm] = useState({ title: "", status: false });
+    const [initialForm, setInitialForm] = useState({ title: "", is_required: 0 });
+    const [preForm, setPreForm] = useState({ category: "", is_required: 0 });
+    const [postForm, setPostForm] = useState({ title: "", is_required: 0 });
 
-    // Search States
-    const [initialSearch, setInitialSearch] = useState("");
-    const [preliminarySearch, setPreliminarySearch] = useState("");
-    const [postSearch, setPostSearch] = useState("");
-
-    // Pagination States
-    const [initialPage, setInitialPage] = useState(1);
-    const [preliminaryPage, setPreliminaryPage] = useState(1);
-    const [postPage, setPostPage] = useState(1);
+    // Search, Filter, Pagination States
+    const [search, setSearch] = useState("");
+    const [filter, setFilter] = useState("all"); // all | required | optional
+    const [page, setPage] = useState(1);
     const perPage = 5;
 
-    // Filtering Function (fixed for each tab)
-    const filterData = (data, search, field) =>
-        data.filter(item => (item[field] || "").toLowerCase().includes(search.toLowerCase()));
+    // Filtering logic
+    const getData = () => {
+        const list =
+            activeTab === "initial"
+                ? initialRequirements
+                : activeTab === "pre"
+                    ? preRequirements
+                    : postRequirements;
 
-    // Save Handlers
-    const handleSaveInitialRequirement = () => {
-        initialRequirements.push(initialRequirementForm);
-        setInitialRequirementForm({ title: "", status: false });
-        setIsInitialModalOpen(false);
+        return list
+            .filter((item) => {
+                const field = item.title || item.category || "";
+                return field.toLowerCase().includes(search.toLowerCase());
+            })
+            .filter((item) => {
+                if (filter === "required") return item.is_required === 1;
+                if (filter === "optional") return item.is_required === 0;
+                return true;
+            });
     };
 
-    const handleSavePreliminaryRequirement = () => {
-        preliminaryRequirements.push(preliminaryRequirementForm);
-        setPreliminaryRequirementForm({ category: "", status: false });
-        setIsPreliminaryModalOpen(false);
-    };
+    const filteredData = getData();
+    const totalPages = Math.ceil(filteredData.length / perPage);
+    const paginatedData = filteredData.slice((page - 1) * perPage, page * perPage);
 
-    const handleSavePostRequirement = () => {
-        postRequirements.push(postRequirementForm);
-        setPostRequirementForm({ title: "", status: false });
-        setIsPostModalOpen(false);
-    };
-
-    // Paginate Function
-    const paginate = (data, page) => data.slice((page - 1) * perPage, page * perPage);
-
-    // Status Display
-    const renderStatus = (status) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${status ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"}`}>
-            {status ? "Required" : "Optional"}
+    const renderStatus = (is_required) => (
+        <span
+            className={`px-3 py-1 rounded-full text-xs font-medium ${is_required === 1
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+                }`}
+        >
+            {is_required === 1 ? "Required" : "Optional"}
         </span>
     );
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="font-semibold leading-tight text-gray-800 dark:text-gray-200">Document Requirements</h2>}
+            header={<h2 className="font-semibold text-gray-800 dark:text-gray-200">Document Requirements</h2>}
         >
             <Head title="Document Requirement" />
+
             <Card className="bg-neutral border-none">
                 <CardHeader>
-                    <Tabs value={activeTab} onValueChange={setActiveTab}>
-                        <TabsList className="dark:bg-white-900">
-                            <TabsTrigger value="initial">Initial Requirements</TabsTrigger>
-                            <TabsTrigger value="pre">Preliminary Requirements</TabsTrigger>
-                            <TabsTrigger value="post">Post Requirements</TabsTrigger>
+                    <Tabs
+                        value={activeTab}
+                        onValueChange={(v) => {
+                            setActiveTab(v);
+                            setSearch("");
+                            setFilter("all");
+                            setPage(1);
+                        }}
+                    >
+                        <TabsList className="bg-gray-100 p-1 rounded-lg">
+                            <TabsTrigger value="initial" className="text-sm font-medium">Initial</TabsTrigger>
+                            <TabsTrigger value="pre" className="text-sm font-medium">Preliminary</TabsTrigger>
+                            <TabsTrigger value="post" className="text-sm font-medium">Post</TabsTrigger>
                         </TabsList>
 
-                        {/* INITIAL TAB */}
-                        <TabsContent value="initial">
+                        <TabsContent value={activeTab}>
                             <CardContent className="p-0 mt-4">
-                                <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-                                    <div className="relative w-full sm:w-1/3">
-                                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
-                                        <Input
-                                            placeholder="Search requirement..."
-                                            value={initialSearch}
-                                            onChange={(e) => { setInitialSearch(e.target.value); setInitialPage(1); }}
-                                            className="pl-8"
-                                        />
+                                {/* Search + Filter + Button Row */}
+                                <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
+                                    <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
+                                        {/* Search */}
+                                        <div className="relative w-full sm:w-64">
+                                            <Search className="absolute left-2 top-2.5 text-gray-400 w-4 h-4" />
+                                            <Input
+                                                placeholder="Search requirement..."
+                                                value={search}
+                                                onChange={(e) => {
+                                                    setSearch(e.target.value);
+                                                    setPage(1);
+                                                }}
+                                                className="pl-8"
+                                            />
+                                        </div>
+
+                                        {/* Filter Dropdown */}
+                                        <div className="relative w-full sm:w-40">
+                                            <Filter className="absolute left-2 top-2.5 text-gray-400 w-4 h-4" />
+                                            <select
+                                                value={filter}
+                                                onChange={(e) => {
+                                                    setFilter(e.target.value);
+                                                    setPage(1);
+                                                }}
+                                                className="pl-8 border rounded-md w-full h-9 text-sm"
+                                            >
+                                                <option value="all">All</option>
+                                                <option value="required">Required</option>
+                                                <option value="optional">Optional</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <Button onClick={() => setIsInitialModalOpen(true)} className="bg-blue-900 hover:bg-blue-700 text-white flex items-center">
-                                        <PlusCircle className="w-4 h-4 mr-2" /> Add Initial Requirement
-                                    </Button>
+
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                setSearch("");
+                                                setFilter("all");
+                                                setPage(1);
+                                            }}
+                                        >
+                                            <RefreshCw className="w-4 h-4 mr-1" /> Clear
+                                        </Button>
+                                        <Button
+                                            onClick={() =>
+                                                activeTab === "initial"
+                                                    ? setIsInitialModalOpen(true)
+                                                    : activeTab === "pre"
+                                                        ? setIsPreliminaryModalOpen(true)
+                                                        : setIsPostModalOpen(true)
+                                            }
+                                            className="bg-blue-900 hover:bg-blue-700 text-white flex items-center text-sm"
+                                        >
+                                            <PlusCircle className="w-4 h-4 mr-1" /> Add
+                                        </Button>
+                                    </div>
                                 </div>
 
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Category</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead className="w-20 text-center">Action</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {paginate(filterData(initialRequirements, initialSearch, "title"), initialPage).map((req, i) => (
-                                            <TableRow key={i}>
-                                                <TableCell>{req.title}</TableCell>
-                                                <TableCell>{renderStatus(req.status)}</TableCell>
-                                                <TableCell className="text-center">
-                                                    <Button size="sm" variant="outline" className="flex items-center gap-1">
-                                                        <Pencil className="w-4 h-4" /> Edit
-                                                    </Button>
-                                                </TableCell>
+                                {/* Table */}
+                                <div className="overflow-x-auto border rounded-md">
+                                    <Table>
+                                        <TableHeader className="bg-gray-100">
+                                            <TableRow>
+                                                <TableHead className="w-16 text-center">#</TableHead>
+                                                <TableHead>{activeTab === "pre" ? "Category" : "Title"}</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead className="text-center">Action</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </TabsContent>
-
-                        {/* PRELIMINARY TAB */}
-                        <TabsContent value="pre">
-                            <CardContent className="p-0 mt-4">
-                                <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-                                    <div className="relative w-full sm:w-1/3">
-                                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
-                                        <Input
-                                            placeholder="Search requirement..."
-                                            value={preliminarySearch}
-                                            onChange={(e) => { setPreliminarySearch(e.target.value); setPreliminaryPage(1); }}
-                                            className="pl-8"
-                                        />
-                                    </div>
-                                    <Button onClick={() => setIsPreliminaryModalOpen(true)} className="bg-blue-900 hover:bg-blue-700 text-white flex items-center">
-                                        <PlusCircle className="w-4 h-4 mr-2" /> Add Preliminary Requirement
-                                    </Button>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {paginatedData.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={4} className="text-center text-gray-500 py-6">
+                                                        No results found.
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : (
+                                                paginatedData.map((req, i) => (
+                                                    <TableRow key={i}>
+                                                        <TableCell className="text-center">
+                                                            {(page - 1) * perPage + i + 1}
+                                                        </TableCell>
+                                                        <TableCell>{req.title || req.category}</TableCell>
+                                                        <TableCell>{renderStatus(req.is_required)}</TableCell>
+                                                        <TableCell className="text-center">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="flex items-center gap-1"
+                                                            >
+                                                                <Pencil className="w-4 h-4" /> Edit
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
+                                        </TableBody>
+                                    </Table>
                                 </div>
 
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Category</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead className="w-20 text-center">Action</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {paginate(filterData(preliminaryRequirements, preliminarySearch, "category"), preliminaryPage).map((req, i) => (
-                                            <TableRow key={i}>
-                                                <TableCell>{req.category}</TableCell>
-                                                <TableCell>{renderStatus(req.status)}</TableCell>
-                                                <TableCell className="text-center">
-                                                    <Button size="sm" variant="outline" className="flex items-center gap-1">
-                                                        <Pencil className="w-4 h-4" /> Edit
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </TabsContent>
-
-                        {/* POST TAB */}
-                        <TabsContent value="post">
-                            <CardContent className="p-0 mt-4">
-                                <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-                                    <div className="relative w-full sm:w-1/3">
-                                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
-                                        <Input
-                                            placeholder="Search requirement..."
-                                            value={postSearch}
-                                            onChange={(e) => { setPostSearch(e.target.value); setPostPage(1); }}
-                                            className="pl-8"
-                                        />
-                                    </div>
-                                    <Button onClick={() => setIsPostModalOpen(true)} className="bg-blue-900 hover:bg-blue-700 text-white flex items-center">
-                                        <PlusCircle className="w-4 h-4 mr-2" /> Add Post Requirement
+                                {/* Pagination */}
+                                <div className="flex flex-col sm:flex-row justify-end items-center mt-4 gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={page === 1}
+                                        onClick={() => setPage(page - 1)}
+                                    >
+                                        Previous
+                                    </Button>
+                                    <span className="px-2 py-1 text-sm">
+                                        Page {page} of {totalPages || 1}
+                                    </span>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={page === totalPages || totalPages === 0}
+                                        onClick={() => setPage(page + 1)}
+                                    >
+                                        Next
                                     </Button>
                                 </div>
-
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Category</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead className="w-20 text-center">Action</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {paginate(filterData(postRequirements, postSearch, "title"), postPage).map((req, i) => (
-                                            <TableRow key={i}>
-                                                <TableCell>{req.title}</TableCell>
-                                                <TableCell>{renderStatus(req.status)}</TableCell>
-                                                <TableCell className="text-center">
-                                                    <Button size="sm" variant="outline" className="flex items-center gap-1">
-                                                        <Pencil className="w-4 h-4" /> Edit
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
                             </CardContent>
                         </TabsContent>
                     </Tabs>
                 </CardHeader>
             </Card>
 
-            {/* MODALS remain unchanged... */}
+            {/* INITIAL MODAL */}
+            <Dialog open={isInitialModalOpen} onOpenChange={setIsInitialModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add Initial Requirement</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <Label>Title</Label>
+                        <Input
+                            value={initialForm.title}
+                            onChange={(e) => setInitialForm({ ...initialForm, title: e.target.value })}
+                            placeholder="Enter requirement title"
+                        />
+                        <Label>Status</Label>
+                        <select
+                            value={initialForm.is_required === 1 ? "required" : "optional"}
+                            onChange={(e) =>
+                                setInitialForm({ ...initialForm, is_required: e.target.value === "required" ? 1 : 0 })
+                            }
+                            className="border rounded p-2 w-full"
+                        >
+                            <option value="required">Required</option>
+                            <option value="optional">Optional</option>
+                        </select>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={() => setIsInitialModalOpen(false)} variant="outline">
+                            Cancel
+                        </Button>
+                        <Button className="bg-blue-900 hover:bg-blue-700 text-white">Save</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* PRELIMINARY MODAL */}
+            <Dialog open={isPreliminaryModalOpen} onOpenChange={setIsPreliminaryModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add Preliminary Requirement</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <Label>Category</Label>
+                        <Input
+                            value={preForm.category}
+                            onChange={(e) => setPreForm({ ...preForm, category: e.target.value })}
+                            placeholder="Enter requirement category"
+                        />
+                        <Label>Status</Label>
+                        <select
+                            value={preForm.is_required === 1 ? "required" : "optional"}
+                            onChange={(e) =>
+                                setPreForm({ ...preForm, is_required: e.target.value === "required" ? 1 : 0 })
+                            }
+                            className="border rounded p-2 w-full"
+                        >
+                            <option value="required">Required</option>
+                            <option value="optional">Optional</option>
+                        </select>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={() => setIsPreliminaryModalOpen(false)} variant="outline">
+                            Cancel
+                        </Button>
+                        <Button className="bg-blue-900 hover:bg-blue-700 text-white">Save</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* POST MODAL */}
+            <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add Post Requirement</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <Label>Title</Label>
+                        <Input
+                            value={postForm.title}
+                            onChange={(e) => setPostForm({ ...postForm, title: e.target.value })}
+                            placeholder="Enter requirement title"
+                        />
+                        <Label>Status</Label>
+                        <select
+                            value={postForm.is_required === 1 ? "required" : "optional"}
+                            onChange={(e) =>
+                                setPostForm({ ...postForm, is_required: e.target.value === "required" ? 1 : 0 })
+                            }
+                            className="border rounded p-2 w-full"
+                        >
+                            <option value="required">Required</option>
+                            <option value="optional">Optional</option>
+                        </select>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={() => setIsPostModalOpen(false)} variant="outline">
+                            Cancel
+                        </Button>
+                        <Button className="bg-blue-900 hover:bg-blue-700 text-white">Save</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AuthenticatedLayout>
     );
+
+
 }

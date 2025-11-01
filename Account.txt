@@ -15,8 +15,21 @@ Student
 studentgio8080
 
 Git Commit and Push 
+git status
+git add .
+git commit -m "your commit message here"
+git push origin main
+
+
 PS D:\Intership Management System\IntershipManagementSystem> git add .
 PS D:\Intership Management System\IntershipManagementSystem> git commit -m "Your commit message here"
 [main 74031c079] Your commit message here
  1 file changed, 1 insertion(+), 1 deletion(-)
 PS D:\Intership Management System\IntershipManagementSystem> git push origin main
+
+
+
+TO DO:
+Files template fetching of Requirements in list
+Continue fetching to students
+
